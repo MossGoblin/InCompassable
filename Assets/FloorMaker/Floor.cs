@@ -9,11 +9,12 @@ using Random = UnityEngine.Random;
 
 public class Floor : MonoBehaviour
 {
-    // Prefabs
+    // Refs
     public Transform obstacle;
     public Transform empty;
     public Transform tileHolder;
     public Transform background;
+    public Transform pathFinder;
 
     // Settings
     public bool basicGrid = true;
@@ -21,6 +22,7 @@ public class Floor : MonoBehaviour
     public bool processNeighbours;
     public bool createSplotches;
     public bool showEmpties;
+    public bool initSpawns;
 
     public int splotchNum = 3;
     public int splotchSize = 3;
@@ -41,13 +43,13 @@ public class Floor : MonoBehaviour
     private int[,] gridSplotches;
     private int[,] gridPOI;
     private Color[,] gridColors;
-    private int[,] finalGrid;
+    public int[,] finalGrid;
     private Transform[,] gridFillObj;
     private Dictionary<Array, bool> grids;
 
     // Overall dimentions
-    int depth;
-    int width;
+    public int depth { get; private set; }
+    public int width { get; private set; }
 
     void Start()
     {
@@ -76,6 +78,10 @@ public class Floor : MonoBehaviour
         CombineGrids();
         MaterializeFloor();
 
+        if (initSpawns)
+        {
+            pathFinder.GetComponent<PathFinder>().FindPath();
+        }
     }
 
     private void InitGrids()

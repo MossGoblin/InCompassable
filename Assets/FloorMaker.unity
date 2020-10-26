@@ -121,6 +121,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &682567328
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 682567330}
+  - component: {fileID: 682567329}
+  m_Layer: 0
+  m_Name: PathFinder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &682567329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 682567328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9387730da750294d9e87bce7bf16204, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  marker: {fileID: 7336719130347609600, guid: 56f6ec54c65728f44b9b811d36473dcc, type: 3}
+  floor: {fileID: 1619756425}
+--- !u!4 &682567330
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 682567328}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 93.256836, y: -12.625, z: -15.082031}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1232113161
 GameObject:
   m_ObjectHideFlags: 0
@@ -331,11 +376,13 @@ MonoBehaviour:
   tileHolder: {fileID: 2123388022}
   background: {fileID: 7616183183950231352, guid: e573bff0df84c96438376cf2c9768d44,
     type: 3}
+  pathFinder: {fileID: 682567330}
   basicGrid: 1
   fillInBorders: 1
-  processNeighbours: 0
-  createSplotches: 0
+  processNeighbours: 1
+  createSplotches: 1
   showEmpties: 1
+  initSpawns: 1
   splotchNum: 5
   splotchSize: 8
   floorCellDepth: 8
