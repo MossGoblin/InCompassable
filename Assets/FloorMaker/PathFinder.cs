@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.SocialPlatforms.Impl;
 using Random = UnityEngine.Random;
 
 public class PathFinder : MonoBehaviour
@@ -11,23 +13,97 @@ public class PathFinder : MonoBehaviour
     public Transform spawnPoints;
 
     // Init lists
-    public List<Node> openNodes { get; set; }
+    public List<Node> openList { get; set; }
 
-    public List<Node> closedNodes { get; set; }
+    public List<Node> closedList { get; set; }
 
-    // Start is called before the first frame update
+    public Node startNode;
+    public Node endNode;
+
     private void Start()
     {
-        openNodes = new List<Node>();
-        closedNodes = new List<Node>();
     }
 
     // Update is called once per frame
     private void Update()
     {
     }
+    public void SetUpStartingPoints()
+    {
+        CreateSpawnPoints();
+        FindPath();
+    }
 
-    public void FindPath()
+    private void FindPath()
+    {
+        Debug.Log("On The Path...");
+        Debug.Log($"{floor.finalGrid.Length}");
+
+        // Init lists
+        openList = new List<Node>();
+        closedList = new List<Node>();
+        // Get the start node in the open list
+        openList.Add(startNode);
+        bool searching = true;
+        while (searching)
+        {
+            // Get next node from the openList
+            Node currentNode = openList.OrderBy(n => n.fScore).FirstOrDefault(); // the node with the smallest fScore
+            // Move node from open to closed list
+            openList.Remove(currentNode);
+            closedList.Add(currentNode);
+            //Debug.Log("** close");
+            // Check if the current node is the end node
+            if (currentNode.position == endNode.position)
+            {
+                // FOUND THE PATH
+                Debug.Log("FOUND PATH");
+                searching = false;
+            }
+            // Iterate nbrs
+            // For each nbs - if there is an open node at that position - work with it; otherwise - create a new one
+            // Get nbrs
+            List<Vector3> nbrPositions = floor.GetNbrs(currentNode);
+            if (nbrPositions.Count > 0)
+            {
+                foreach (Vector3 nbrPos in nbrPositions)
+                {
+                    // Check if nbr is closed - if it is - skip
+                    Node closedNode = closedList.FirstOrDefault(n => n.position == nbrPos);
+                    if (closedNode != null)
+                    {
+                        continue;
+                    }
+                    // Find if there is an open node at this position
+                    Node openNode = openList.FirstOrDefault(n => n.position == nbrPos);
+                    if (openNode != null) // There is an open node at this position - update it
+                    {
+                        // TODO some check needs to happen here !!
+                        if (currentNode.gScore + 1 < openNode.gScore)
+                        {
+                            openNode.parent = currentNode;
+                            //Debug.Log("--- updated");
+                        }
+                    }
+                    else // No node at this position so far
+                    {
+                        Node newNode = new Node(nbrPos, currentNode, endNode.position);
+                        openList.Add(newNode);
+                        //Debug.Log("-- open");
+                    }
+                }
+            }
+            if (openList.Count == 0)
+            {
+                searching = false;
+            }
+            Debug.Log($"o: {openList.Count} / c: {closedList.Count} / a: {floor.finalGrid.Length}");
+        }
+        // search ended; return something
+        return;
+    }
+
+    public void CreateSpawnPoints()
     {
         int depthHalf = 0;
         int widthHalf = 0;
@@ -65,7 +141,7 @@ public class PathFinder : MonoBehaviour
         {
             int endPositionDepthRaw = (startPositionDepth + Random.Range(halfDepth, 2 * halfDepth));
             endPositionDepth = endPositionDepthRaw % (floor.depth - 4);
-            int endPositionWidthRaw = (startPositionWidth + Random.Range(halfDepth, halfWidth * 4 / 3));
+            int endPositionWidthRaw = (startPositionWidth + Random.Range(halfWidth, halfWidth * 4 / 3));
             endPositionWidth = endPositionWidthRaw % (floor.width - 4);
             // Check if the position is viable
             if (AccessibleSpot(endPositionDepth, endPositionWidth))
@@ -83,10 +159,14 @@ public class PathFinder : MonoBehaviour
         // Place markers
         Transform start = Instantiate(marker, new Vector3(startPositionWidth, 3, startPositionDepth), Quaternion.identity);
         start.parent = spawnPoints;
-        start.GetComponent<MeshRenderer>().material.color = Color.yellow;
+        start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
         Transform end = Instantiate(marker, new Vector3(endPositionWidth, 3, endPositionDepth), Quaternion.identity);
         end.parent = spawnPoints;
-        end.GetComponent<MeshRenderer>().material.color = Color.green;
+        end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
+
+        // Create start and end nodes
+        startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, start.position);
+        endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
     }
 
     private bool AccessibleSpot(int depth, int width)
@@ -142,13 +222,45 @@ public class PathFinder : MonoBehaviour
 public class Node
 {
     public Vector3 position { get; set; }
-    public Node parent { get; set; }
+    public Node parent
+    {
+        get
+        {
+            return parent;
+        }
+        set
+        {
+            gScore = 1;
+        }
+    }
     public float gScore { get; set; }
     public float hScore { get; set; }
-    public float fScore { get; set; }
+    public float fScore
+    {
+        get
+        {
+            return gScore + hScore;
+        }
+    }
 
-    public Node(Vector3 pos)
+    public Node(Vector3 pos, Node parent, Vector3 endNodePosition)
     {
         this.position = pos;
+        hScore = GetScore(this.position, endNodePosition);
+        if (parent == null)
+        {
+            gScore = 0;
+        }
+        else
+        {
+            gScore = parent.gScore + 1;
+        }
+    }
+
+    public float GetScore(Vector3 pos1, Vector3 pos2)
+    {
+        Vector3 dist = pos1 - pos2;
+        float score = Mathf.Sqrt(dist.x * dist.x + dist.z + dist.z);
+        return score;
     }
 }

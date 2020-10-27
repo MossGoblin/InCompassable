@@ -82,7 +82,7 @@ public class Floor : MonoBehaviour
 
         if (initSpawns)
         {
-            pathFinder.GetComponent<PathFinder>().FindPath();
+            pathFinder.GetComponent<PathFinder>().SetUpStartingPoints();
         }
     }
 
@@ -150,7 +150,7 @@ public class Floor : MonoBehaviour
                 {
                     for (int cellW = 0; cellW < cellCols; cellW += 1)
                     {
-                        Debug.Log($"{countD}/{countW}: {cellD}/{cellW}");
+                        //Debug.Log($"{countD}/{countW}: {cellD}/{cellW}");
                         int positionX = countW * cellCols + cellW;
                         int positionY = countD * cellRows + cellD;
                         gridBasic[positionY, positionX] = currentCell.Grid()[cellD, cellW];
@@ -353,19 +353,23 @@ public class Floor : MonoBehaviour
         }
     }
 
-    private int[,] CloneArray(int[,] grid)
+    public List<Vector3> GetNbrs(Node node)
     {
-        int sd = grid.GetLength(0);
-        int sw = grid.GetLength(1);
-        int[,] clone = new int[sd, sw];
-        for (int cd = 0; cd < sd; cd += 1)
+        int posW = (int)node.position.x;
+        int posD = (int)node.position.z;
+
+        List<Vector3> nbrs = new List<Vector3>();
+
+        int[] pos = new int[4] { 0, 1, 0, -1 };
+        for (int count = 0; count < 3; count += 1)
         {
-            for (int cw = 0; cw < cd; cw += 1)
+            int nbrD = posD + pos[count];
+            int nbrW = posW + pos[(count + 3) % 4];
+            if (finalGrid[nbrW, nbrD] == 0)
             {
-                clone[cd, cw] = grid[cd, cw];
+                nbrs.Add(new Vector3(nbrW, 0, nbrD));
             }
         }
-
-        return clone;
+        return nbrs;
     }
 }

@@ -180,7 +180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9387730da750294d9e87bce7bf16204, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  marker: {fileID: 7336719130347609600, guid: 56f6ec54c65728f44b9b811d36473dcc, type: 3}
+  marker: {fileID: 3238838965761194607, guid: c7fc8258f05916b419f1c871f6be6f0e, type: 3}
   floor: {fileID: 1619756425}
   spawnPoints: {fileID: 245760760}
 --- !u!4 &682567330
