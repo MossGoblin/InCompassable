@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -9,24 +6,24 @@ public class PathFinder : MonoBehaviour
 {
     // Refs
     public Transform marker;
+
     public Floor floor;
     public Transform spawnPoints;
 
     // Init lists
     public List<Node> openNodes { get; set; }
+
     public List<Node> closedNodes { get; set; }
 
-
-
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         openNodes = new List<Node>();
         closedNodes = new List<Node>();
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
     }
 
@@ -40,7 +37,6 @@ public class PathFinder : MonoBehaviour
         int startPositionWidth = 0;
         int endPositionDepth = 0;
         int endPositionWidth = 0;
-
 
         // Pick start point
         // Find a point with at least 3 empty nbrs
@@ -56,12 +52,11 @@ public class PathFinder : MonoBehaviour
             startPositionWidth = Random.Range(0, halfWidth) + widthHalf * halfWidth;
 
             // Check if the position is viable
-            if (SpotIsGood(startPositionDepth, startPositionWidth))
+            if (AccessibleSpot(startPositionDepth, startPositionWidth))
             {
                 searching = false;
             }
         }
-
 
         // Pick end point
         // Endpoint - depth range - no limit (half width to full depth); width range - half depth up to 2/3 width
@@ -73,7 +68,7 @@ public class PathFinder : MonoBehaviour
             int endPositionWidthRaw = (startPositionWidth + Random.Range(halfDepth, halfWidth * 4 / 3));
             endPositionWidth = endPositionWidthRaw % (floor.width - 4);
             // Check if the position is viable
-            if (SpotIsGood(endPositionDepth, endPositionWidth))
+            if (AccessibleSpot(endPositionDepth, endPositionWidth))
             {
                 searching = false;
             }
@@ -85,7 +80,6 @@ public class PathFinder : MonoBehaviour
             Destroy(obj.gameObject);
         }
 
-
         // Place markers
         Transform start = Instantiate(marker, new Vector3(startPositionWidth, 3, startPositionDepth), Quaternion.identity);
         start.parent = spawnPoints;
@@ -95,10 +89,14 @@ public class PathFinder : MonoBehaviour
         end.GetComponent<MeshRenderer>().material.color = Color.green;
     }
 
-    private bool SpotIsGood(int depth, int width)
+    private bool AccessibleSpot(int depth, int width)
     {
         // Count neighbours
         if (floor.finalGrid[depth, width] == 1) // fail - occupied position
+        {
+            return false;
+        }
+        if (floor.gridPOI[depth, width] == 1) // fail - place is POI
         {
             return false;
         }
@@ -124,6 +122,12 @@ public class PathFinder : MonoBehaviour
             {
                 break;
             }
+            // if nbr is POI
+            if (floor.gridPOI[depth + posD, width + posW] == 1)
+            {
+                break;
+            }
+
             freeNbrs += 1;
         }
 

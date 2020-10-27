@@ -1,11 +1,7 @@
-﻿ using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlayerMover : MonoBehaviour
 {
-
     public CharacterController controller;
     public Transform cameraHolderTransform;
     public float currentRotation;
@@ -13,17 +9,16 @@ public class PlayerMover : MonoBehaviour
     private Vector3 initPlayerRotation;
     public float rotationSpeed;
 
-
     public bool rightPlayer;
     public float moveSpeed = 6f;
     public float turnSpeed = 8;
 
-    void Start()
+    private void Start()
     {
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         currentRotation = initRotation;
         initPlayerRotation = transform.rotation.eulerAngles;
@@ -51,6 +46,5 @@ public class PlayerMover : MonoBehaviour
         transform.Rotate(0, horMove, 0);
         // camera rotation
         //cameraHolderTransform.Rotate(0, -horMove, 0);
-
     }
 }

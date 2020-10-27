@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using UnityEngine;
-using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
 public class Floor : MonoBehaviour
 {
     // Refs
     public Transform obstacle;
+
     public Transform empty;
     public Transform tileHolder;
     public Transform background;
@@ -18,6 +15,7 @@ public class Floor : MonoBehaviour
 
     // Settings
     public bool basicGrid = true;
+
     public bool fillInBorders;
     public bool processNeighbours;
     public bool createSplotches;
@@ -29,6 +27,7 @@ public class Floor : MonoBehaviour
 
     // Grid size and resolution
     public int floorCellDepth = 8;
+
     public int floorCellWidth = 8;
     public int cellRows = 8;
     public int cellCols = 16;
@@ -37,11 +36,12 @@ public class Floor : MonoBehaviour
 
     // Grids
     private Cell[,] gridCells;
+
     private int[,] gridBasic;
     private int[,] gridBorders;
     private int[,] gridNbrs;
     private int[,] gridSplotches;
-    private int[,] gridPOI;
+    public int[,] gridPOI;
     private Color[,] gridColors;
     public int[,] finalGrid;
     private Transform[,] gridFillObj;
@@ -49,9 +49,10 @@ public class Floor : MonoBehaviour
 
     // Overall dimentions
     public int depth { get; private set; }
+
     public int width { get; private set; }
 
-    void Start()
+    private void Start()
     {
         ResetGrids();
     }
@@ -63,7 +64,8 @@ public class Floor : MonoBehaviour
             ResetGrids();
         }
     }
-    void Update()
+
+    private void Update()
     {
         HandleInput();
     }
@@ -240,7 +242,6 @@ public class Floor : MonoBehaviour
                     {
                         finalGrid[cd, cw] = 1;
                     }
-
                     else
                     {
                         finalGrid[cd, cw] = 0;
@@ -278,28 +279,28 @@ public class Floor : MonoBehaviour
             // get magnitude
             int splotchMag = (int)Random.Range(splotchSize / 2, splotchSize);
 
-            Splotch(posD, posW, splotchMag);
+            PlaceSplotch(posD, posW, splotchMag);
             previousColumn = posW;
         }
 
         grids.Add(gridSplotches, false);
     }
 
-    private void Splotch(int posD, int posW, int mag)
+    private void PlaceSplotch(int posD, int posW, int mag)
     {
-        gridPOI[posD, posW] = 1;
-
-        for (int countD = posD - mag; countD <= posD + mag; countD += 1)
+        for (int countW = posD - mag; countW <= posD + mag; countW += 1)
         {
-            for (int countW = posW - mag; countW <= posW + mag; countW += 1)
+            for (int countD = posW - mag; countD <= posW + mag; countD += 1)
             {
-                if ((countD > 0) && (countD < depth - 1) && // within depth (border excluded)
-                    (countW > 0) && (countW < width - 1) && // withn width (border excluded)
-                    (Math.Sqrt(((countD - posD) * (countD - posD)) + ((countW - posW) * (countW - posW))) <= mag)) // within mag of the coordinates
+                if ((countW > 0) && (countW < depth - 1) && // within depth (border excluded)
+                    (countD > 0) && (countD < width - 1) && // withn width (border excluded)
+                    (Math.Sqrt(((countW - posD) * (countW - posD)) + ((countD - posW) * (countD - posW))) <= mag)) // within mag of the coordinates
                 {
-                    gridSplotches[countD, countW] = 1;
+                    gridSplotches[countW, countD] = 1;
                     // DEBUG ONLY
-                    gridColors[countD, countW] = Color.red;
+                    gridColors[countW, countD] = Color.red;
+                    // mark the splotch place as special (to avoid collision with other artifacts)
+                    gridPOI[posD, posW] = 1;
                 }
             }
         }
@@ -338,7 +339,6 @@ public class Floor : MonoBehaviour
                         obj = empty;
                     }
                     else obj = null;
-
                 }
                 // positionY = number of cells right * cell width + number of indeces in the cell
                 if (obj != null)
@@ -352,6 +352,7 @@ public class Floor : MonoBehaviour
             }
         }
     }
+
     private int[,] CloneArray(int[,] grid)
     {
         int sd = grid.GetLength(0);
@@ -368,4 +369,3 @@ public class Floor : MonoBehaviour
         return clone;
     }
 }
-

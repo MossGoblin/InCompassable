@@ -1,8 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public class Cell
+﻿public class Cell
 {
     private int[,] grid;
     public int Depth { get; private set; }
@@ -11,6 +7,7 @@ public class Cell
     public int Min { get; private set; }
     private int used;
     private int counted;
+
     public Cell(int depth, int width, int min, int max)
     {
         this.Depth = depth;
@@ -25,6 +22,7 @@ public class Cell
     {
         return this.grid;
     }
+
     private void InitGrid()
     {
         this.counted = Depth * Width;
@@ -41,7 +39,6 @@ public class Cell
 
     private int GetCellValue()
     {
-
         // Generate number in counted range
         // If equal or less than used - return 1; decrease used
         // Decrease counted
