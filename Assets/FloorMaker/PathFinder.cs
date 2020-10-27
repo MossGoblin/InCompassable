@@ -10,6 +10,7 @@ public class PathFinder : MonoBehaviour
     // Refs
     public Transform marker;
     public Floor floor;
+    public Transform spawnPoints;
 
     // Init lists
     public List<Node> openNodes { get; set; }
@@ -72,16 +73,25 @@ public class PathFinder : MonoBehaviour
             int endPositionWidthRaw = (startPositionWidth + Random.Range(halfDepth, halfWidth * 4 / 3));
             endPositionWidth = endPositionWidthRaw % (floor.width - 4);
             // Check if the position is viable
-            if (SpotIsGood(startPositionDepth, startPositionWidth))
+            if (SpotIsGood(endPositionDepth, endPositionWidth))
             {
                 searching = false;
             }
         }
 
+        // Remove old markers
+        foreach (Transform obj in spawnPoints)
+        {
+            Destroy(obj.gameObject);
+        }
+
+
         // Place markers
         Transform start = Instantiate(marker, new Vector3(startPositionWidth, 3, startPositionDepth), Quaternion.identity);
+        start.parent = spawnPoints;
         start.GetComponent<MeshRenderer>().material.color = Color.yellow;
         Transform end = Instantiate(marker, new Vector3(endPositionWidth, 3, endPositionDepth), Quaternion.identity);
+        end.parent = spawnPoints;
         end.GetComponent<MeshRenderer>().material.color = Color.green;
     }
 
