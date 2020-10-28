@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
@@ -34,7 +36,7 @@ public class PathFinder : MonoBehaviour
         FindPath();
     }
 
-    public void FindPath()
+    public IEnumerator FindPath()
     {
         // Decolorize all objects
         foreach (Transform obj in floor.gridFillObj)
@@ -76,7 +78,7 @@ public class PathFinder : MonoBehaviour
 
             // DBG Debug section
             maxFScore = Mathf.Max(currentNode.fScore, maxFScore);
-            Debug.Log($"{currentNode.position.x},{currentNode.position.z} / {endNode.position.x},{endNode.position.z} : {currentNode.fScore}/{maxFScore}");
+            // Debug.Log($"{currentNode.position.x},{currentNode.position.z} / {endNode.position.x},{endNode.position.z} : {currentNode.fScore}/{maxFScore}");
             // Debug only
             if (floor.gridFillObj[(int)currentNode.position.x, (int)currentNode.position.z] != null)
             {
@@ -85,7 +87,7 @@ public class PathFinder : MonoBehaviour
 
             if ((int)currentNode.position.x == (int)endNode.position.x && (int)currentNode.position.z == (int)endNode.position.z)
             {
-                Debug.Log("REACHED END");
+                Debug.Log($"REACHED END {currentNode.position}");
                 searching = false;
                 foundPath = true;
                 break;
@@ -123,17 +125,22 @@ public class PathFinder : MonoBehaviour
 
             // TODO HERE
             //Debug.Log($"o: {openList.Count} / c: {closedList.Count} / a: {availablePositions}");
+            yield return null;
+
         }
 
         if (foundPath)
         {
             // TODO retrace path
         }
-
     }
 
     public void CreateSpawnPoints()
     {
+        Debug.Log("Spawning points...");
+
+        List<Vector3> undesirables = new List<Vector3>();
+
         int depthHalf = 0;
         int widthHalf = 0;
         int halfDepth = 0;
@@ -149,17 +156,22 @@ public class PathFinder : MonoBehaviour
         while (searching)
         {
             // pick random half of the map (width and depth) for a starting point
-            depthHalf = Random.Range(0, 1);
             widthHalf = Random.Range(0, 1);
-            halfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
+            depthHalf = Random.Range(0, 1);
             halfWidth = floor.width / 2 - 4;
-            startPositionDepth = Random.Range(0, halfDepth) + depthHalf * halfDepth;
+            halfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
             startPositionWidth = Random.Range(0, halfWidth) + widthHalf * halfWidth;
+            startPositionDepth = Random.Range(0, halfDepth) + depthHalf * halfDepth;
 
             // Check if the position is viable
-            if (AccessibleSpot(startPositionDepth, startPositionWidth))
+            Vector3 startVector = new Vector3(startPositionWidth, 0, startPositionDepth);
+            if (!undesirables.Contains(startVector))
             {
-                searching = false;
+                if (AccessibleSpot(startPositionWidth, startPositionDepth))
+                {
+                    undesirables.Add(startVector);
+                    searching = false;
+                }
             }
         }
 
@@ -168,17 +180,23 @@ public class PathFinder : MonoBehaviour
         searching = true;
         while (searching)
         {
-            int endPositionDepthRaw = (startPositionDepth + Random.Range(halfDepth, 2 * halfDepth));
-            endPositionDepth = endPositionDepthRaw % (floor.depth - 4);
             int endPositionWidthRaw = (startPositionWidth + Random.Range(halfWidth, halfWidth * 4 / 3));
             endPositionWidth = endPositionWidthRaw % (floor.width - 4);
+            int endPositionDepthRaw = (startPositionDepth + Random.Range(halfDepth, 2 * halfDepth));
+            endPositionDepth = endPositionDepthRaw % (floor.depth - 4);
             // Check if the position is viable
-            if (AccessibleSpot(endPositionDepth, endPositionWidth))
+            Vector3 endVector = new Vector3(endPositionWidth, 0, endPositionDepth);
+            if (!undesirables.Contains(endVector))
             {
-                searching = false;
+                if (AccessibleSpot(endPositionWidth, endPositionDepth))
+                {
+                    undesirables.Add(endVector);
+                    searching = false;
+                }
             }
         }
 
+        Debug.Log($"undesirables: {undesirables.Count}");
         // Remove old markers
         foreach (Transform obj in spawnPoints)
         {
@@ -196,16 +214,20 @@ public class PathFinder : MonoBehaviour
         // Create start and end nodes
         startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, end.position);
         endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
+
+        // LogDump spawn positions
+        Debug.Log($"start: {start.transform.position}");
+        Debug.Log($"end: {end.transform.position}");
     }
 
-    private bool AccessibleSpot(int depth, int width)
+    private bool AccessibleSpot(int width, int depth)
     {
         // Count neighbours
-        if (floor.finalGrid[depth, width] == 1) // fail - occupied position
+        if (floor.finalGrid[width, depth] == 1) // fail - occupied position
         {
             return false;
         }
-        if (floor.gridPOI[depth, width] == 1) // fail - place is POI
+        if (floor.gridPOI[width, depth] == 1) // fail - place is POI
         {
             return false;
         }
@@ -218,21 +240,21 @@ public class PathFinder : MonoBehaviour
             int posD = pos[count];
             int posW = pos[(count + 3) % 4];
             // check if nbr is in the border
-            if ((depth + posD <= 2) || (depth + posD >= (floor.depth - 4)))
+            if ((depth + posD <= 2) || (depth + posD >= (floor.width - 4)))
             {
                 break;
             }
-            if ((width + posW <= 2) || (width + posW >= (floor.width - 4)))
+            if ((width + posW <= 2) || (width + posW >= (floor.depth - 4)))
             {
                 break;
             }
             // if nbr is occupied
-            if (floor.finalGrid[depth + posD, width + posW] == 1)
+            if (floor.finalGrid[width + posW, depth + posD] == 1)
             {
                 break;
             }
             // if nbr is POI
-            if (floor.gridPOI[depth + posD, width + posW] == 1)
+            if (floor.gridPOI[width + posW, depth + posD] == 1)
             {
                 break;
             }
@@ -296,7 +318,7 @@ public class Node
         float distX = Mathf.Abs(dist.x);
         float distZ = Mathf.Abs(dist.z);
         int smaller = (int)Mathf.Min(distX, distZ);
-        int larger  = (int)Mathf.Max(distX, distZ);
+        int larger = (int)Mathf.Max(distX, distZ);
 
         float score = (float)(smaller * 1.4 + (larger - smaller));
         // Euclidian version

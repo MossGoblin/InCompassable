@@ -410,20 +410,20 @@ MonoBehaviour:
   pathFinder: {fileID: 682567330}
   basicGrid: 1
   fillInBorders: 1
-  processNeighbours: 1
-  createSplotches: 1
+  processNeighbours: 0
+  createSplotches: 0
   showEmpties: 1
   colorTiles: 0
   initSpawns: 1
   findPath: 0
+  floorCellWidth: 7
+  floorCellDepth: 4
+  cellCols: 6
+  cellRows: 6
+  cellMin: 4
+  cellMax: 8
   splotchNum: 5
   splotchSize: 8
-  floorCellDepth: 8
-  floorCellWidth: 8
-  cellRows: 8
-  cellCols: 16
-  cellMin: 15
-  cellMax: 25
 --- !u!4 &1619756426
 Transform:
   m_ObjectHideFlags: 0

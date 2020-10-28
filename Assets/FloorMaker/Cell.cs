@@ -8,10 +8,10 @@
     private int used;
     private int counted;
 
-    public Cell(int depth, int width, int min, int max)
+    public Cell(int width, int depth, int min, int max)
     {
-        this.Depth = depth;
         this.Width = width;
+        this.Depth = depth;
         this.Max = max;
         this.Min = min;
 
