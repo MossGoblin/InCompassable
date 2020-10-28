@@ -416,12 +416,15 @@ MonoBehaviour:
   colorTiles: 0
   initSpawns: 1
   findPath: 0
-  floorCellWidth: 7
-  floorCellDepth: 4
-  cellCols: 6
-  cellRows: 6
-  cellMin: 4
-  cellMax: 8
+  floorCellWidth: 8
+  floorCellDepth: 8
+  cellCols: 16
+  cellRows: 8
+  cellMin: 15
+  cellMax: 25
+  spawnsWidthDist: 50
+  spawnsDepthDist: 40
+  spawnDistanceThreshold: 5
   splotchNum: 5
   splotchSize: 8
 --- !u!4 &1619756426

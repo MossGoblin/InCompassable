@@ -31,8 +31,10 @@ public class Floor : MonoBehaviour
     public int cellRows = 8;
     public int cellMin = 15;
     public int cellMax = 25;
-
-        public int splotchNum = 3;
+    public int spawnsWidthDist;
+    public int spawnsDepthDist;
+    public int spawnDistanceThreshold;
+    public int splotchNum = 3;
     public int splotchSize = 3;
 
 
@@ -96,8 +98,8 @@ public class Floor : MonoBehaviour
     private void InitGrids()
     {
         // cache dimentions
-        this.width = floorCellWidth * cellRows;
-        this.depth = floorCellDepth * cellCols;
+        this.width = floorCellWidth * cellCols;
+        this.depth = floorCellDepth * cellRows;
 
         grids = new Dictionary<Array, bool>();
 
@@ -122,7 +124,7 @@ public class Floor : MonoBehaviour
         gridNbrs = new int[width, depth];
 
         // Init colors grid
-        gridColors = new Color[floorCellWidth * cellCols, floorCellDepth * cellRows];
+        gridColors = new Color[width, depth];
 
         // Init final grid
         finalGrid = new int[width, depth];

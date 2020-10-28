@@ -22,6 +22,9 @@ public class PathFinder : MonoBehaviour
     public Node startNode;
     public Node endNode;
 
+    // DBG ONLY
+    private bool haveSpawns = false;
+
     private void Start()
     {
     }
@@ -33,7 +36,10 @@ public class PathFinder : MonoBehaviour
     public void SetUpStartingPoints()
     {
         CreateSpawnPoints();
-        FindPath();
+        if (haveSpawns)
+        {
+            FindPath();
+        }
     }
 
     public IEnumerator FindPath()
@@ -141,62 +147,59 @@ public class PathFinder : MonoBehaviour
 
         List<Vector3> undesirables = new List<Vector3>();
 
-        int depthHalf = 0;
-        int widthHalf = 0;
-        int halfDepth = 0;
-        int halfWidth = 0;
-        int startPositionDepth = 0;
-        int startPositionWidth = 0;
-        int endPositionDepth = 0;
-        int endPositionWidth = 0;
+        int halfWidth = floor.width / 2 - 2;
+        int halfDepth = floor.depth / 2 - 2; // Shave 2 on each side to account for the double tile borders
 
         // Pick start point
         // Find a point with at least 3 empty nbrs
+
+        // Create a dictionary of all available points
+        Debug.Log("List viable empties");
+
+        Dictionary<Vector3, bool> availables = new Dictionary<Vector3, bool>();
+        for (int countW = 0; countW < floor.finalGrid.GetLength(0); countW++)
+        {
+            for (int countD = 0; countD < floor.finalGrid.GetLength(1); countD++)
+            {
+                if (AccessibleSpot(countW, countD))
+                {
+                    availables.Add(new Vector3(countW, 3, countD), true);
+                }
+            }
+        }
+
+        // pick starting point within the first half of the map
         bool searching = true;
+        Vector3 startVector = Vector3.zero;
+        Vector3 endVector = Vector3.zero;
+
+        // DBG Safety
+        int counter = 0;
+
         while (searching)
         {
-            // pick random half of the map (width and depth) for a starting point
-            widthHalf = Random.Range(0, 1);
-            depthHalf = Random.Range(0, 1);
-            halfWidth = floor.width / 2 - 4;
-            halfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
-            startPositionWidth = Random.Range(0, halfWidth) + widthHalf * halfWidth;
-            startPositionDepth = Random.Range(0, halfDepth) + depthHalf * halfDepth;
+            float randomW = Random.Range(0, halfWidth / 2);
+            startVector = availables.FirstOrDefault(kvp => (kvp.Key.x >= (randomW)) && (kvp.Key.x <= (halfWidth - randomW))).Key;
+            availables[startVector] = false;
+            // Find a Vector at approximately that distance for the end point
 
-            // Check if the position is viable
-            Vector3 startVector = new Vector3(startPositionWidth, 0, startPositionDepth);
-            if (!undesirables.Contains(startVector))
+            endVector = availables.FirstOrDefault(kvp => (Mathf.Abs(Math.Abs(kvp.Key.x - startVector.x) - floor.spawnsWidthDist) <= floor.spawnDistanceThreshold) &&
+                                                                    Mathf.Abs(Math.Abs(kvp.Key.z - startVector.z) - floor.spawnsDepthDist) <= floor.spawnDistanceThreshold).Key;
+            if (endVector.x != 0 && endVector.z != 0)
             {
-                if (AccessibleSpot(startPositionWidth, startPositionDepth))
-                {
-                    undesirables.Add(startVector);
-                    searching = false;
-                }
+                availables[endVector] = false;
+                searching = false;
+                haveSpawns = true;
             }
+
+            if (counter >= 30)
+            {
+                Debug.Log("Cycled OUT");
+                searching = false;
+            }
+            counter++;
         }
 
-        // Pick end point
-        // Endpoint - depth range - no limit (half width to full depth); width range - half depth up to 2/3 width
-        searching = true;
-        while (searching)
-        {
-            int endPositionWidthRaw = (startPositionWidth + Random.Range(halfWidth, halfWidth * 4 / 3));
-            endPositionWidth = endPositionWidthRaw % (floor.width - 4);
-            int endPositionDepthRaw = (startPositionDepth + Random.Range(halfDepth, 2 * halfDepth));
-            endPositionDepth = endPositionDepthRaw % (floor.depth - 4);
-            // Check if the position is viable
-            Vector3 endVector = new Vector3(endPositionWidth, 0, endPositionDepth);
-            if (!undesirables.Contains(endVector))
-            {
-                if (AccessibleSpot(endPositionWidth, endPositionDepth))
-                {
-                    undesirables.Add(endVector);
-                    searching = false;
-                }
-            }
-        }
-
-        Debug.Log($"undesirables: {undesirables.Count}");
         // Remove old markers
         foreach (Transform obj in spawnPoints)
         {
@@ -204,10 +207,10 @@ public class PathFinder : MonoBehaviour
         }
 
         // Place markers
-        Transform start = Instantiate(marker, new Vector3(startPositionWidth, 3, startPositionDepth), Quaternion.identity);
+        Transform start = Instantiate(marker, startVector, Quaternion.identity);
         start.parent = spawnPoints;
         start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-        Transform end = Instantiate(marker, new Vector3(endPositionWidth, 3, endPositionDepth), Quaternion.identity);
+        Transform end = Instantiate(marker, endVector, Quaternion.identity);
         end.parent = spawnPoints;
         end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
@@ -219,6 +222,7 @@ public class PathFinder : MonoBehaviour
         Debug.Log($"start: {start.transform.position}");
         Debug.Log($"end: {end.transform.position}");
     }
+
 
     private bool AccessibleSpot(int width, int depth)
     {
@@ -321,9 +325,6 @@ public class Node
         int larger = (int)Mathf.Max(distX, distZ);
 
         float score = (float)(smaller * 1.4 + (larger - smaller));
-        // Euclidian version
-        //Vector3 dist = origin - target;
-        //float score = Mathf.Sqrt((dist.x * dist.x) + (dist.z * dist.z));
 
         return score;
     }
