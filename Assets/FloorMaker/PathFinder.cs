@@ -36,71 +36,100 @@ public class PathFinder : MonoBehaviour
 
     public void FindPath()
     {
+        // Decolorize all objects
+        foreach (Transform obj in floor.gridFillObj)
+        {
+            obj.GetComponent<MeshRenderer>().material.color = Color.gray;
+        }
+
         Debug.Log("On The Path...");
-        Debug.Log($"{floor.finalGrid.Length}");
+
+        int availablePositions = floor.GetAllAvailablePositions();
+        Debug.Log($"{availablePositions}");
 
         // Init lists
-        openList = new List<Node>();
-        closedList = new List<Node>();
-        // Get the start node in the open list
+        List<Node> openList = new List<Node>();
+        List<Node> closedList = new List<Node>();
+
+        // Add startNode to openList
         openList.Add(startNode);
+
+        // DBG Debug section
+        float maxFScore = 0f;
+
+        // Loop
         bool searching = true;
-        while (searching)
+        bool foundPath = false;
+        while (openList.Count > 0)
         {
-            // Get next node from the openList
-            Node currentNode = openList.OrderBy(n => n.fScore).FirstOrDefault(); // the node with the smallest fScore
-            // Move node from open to closed list
-            openList.Remove(currentNode);
-            closedList.Add(currentNode);
-            //Debug.Log("** close");
-            // Check if the current node is the end node
-            if (currentNode.position == endNode.position)
-            {
-                // FOUND THE PATH
-                Debug.Log("FOUND PATH");
-                searching = false;
-            }
-            // Iterate nbrs
-            // For each nbs - if there is an open node at that position - work with it; otherwise - create a new one
-            // Get nbrs
-            List<Vector3> nbrPositions = floor.GetNbrs(currentNode);
-            if (nbrPositions.Count > 0)
-            {
-                foreach (Vector3 nbrPos in nbrPositions)
-                {
-                    // Check if nbr is closed - if it is - skip
-                    Node closedNode = closedList.FirstOrDefault(n => n.position == nbrPos);
-                    if (closedNode != null)
-                    {
-                        continue;
-                    }
-                    // Find if there is an open node at this position
-                    Node openNode = openList.FirstOrDefault(n => n.position == nbrPos);
-                    if (openNode != null) // There is an open node at this position - update it
-                    {
-                        // TODO some check needs to happen here !!
-                        if (currentNode.gScore + 1 < openNode.gScore)
-                        {
-                            openNode.parent = currentNode;
-                            //Debug.Log("--- updated");
-                        }
-                    }
-                    else // No node at this position so far
-                    {
-                        Node newNode = new Node(nbrPos, currentNode, endNode.position);
-                        openList.Add(newNode);
-                        //Debug.Log("-- open");
-                    }
-                }
-            }
+            // If the open list is empty - exit with no path
             if (openList.Count == 0)
             {
+                Debug.Log("NO PATH");
                 searching = false;
+                break;
             }
-            Debug.Log($"o: {openList.Count} / c: {closedList.Count} / a: {floor.finalGrid.Length}");
+            // Get current node from openList - lowest fScore
+            Node currentNode = openList.OrderBy(n => n.fScore).FirstOrDefault();
+            openList.Remove(currentNode);
+            closedList.Add(currentNode);
+
+            // DBG Debug section
+            maxFScore = Mathf.Max(currentNode.fScore, maxFScore);
+            Debug.Log($"{currentNode.position.x},{currentNode.position.z} / {endNode.position.x},{endNode.position.z} : {currentNode.fScore}/{maxFScore}");
+            // Debug only
+            if (floor.gridFillObj[(int)currentNode.position.x, (int)currentNode.position.z] != null)
+            {
+                floor.gridFillObj[(int)currentNode.position.x, (int)currentNode.position.z].GetComponent<MeshRenderer>().material.color = Color.red;
+            }
+
+            if ((int)currentNode.position.x == (int)endNode.position.x && (int)currentNode.position.z == (int)endNode.position.z)
+            {
+                Debug.Log("REACHED END");
+                searching = false;
+                foundPath = true;
+                break;
+            }
+
+            // Get nbrs of current node
+            List<Vector3> nbrPositions = floor.GetNbrs(currentNode);
+            // Iterate nbrs of current node
+            foreach (Vector3 nbrPos in nbrPositions)
+            {
+                // if there is a closed Node at that position - skip it
+                Node possiblyClosed = closedList.FirstOrDefault(n => n.position == nbrPos);
+                if (possiblyClosed != null)
+                {
+                    continue;
+                }
+
+                // check if there is an open node at that position
+                Node possiblyOpen = openList.FirstOrDefault(n => n.position == nbrPos);
+                if (possiblyOpen != null) // there is an open node at that position - possible update
+                {
+                    // check if the path through the current node to nbr is shorter
+                    if (possiblyOpen.gScore > currentNode.gScore + 1) // shorter way to the nbr via the current node - update parent and gScore
+                    {
+                        possiblyOpen.SetParent(currentNode); // this should also recalculate gScore
+                    }
+                }
+                else // No node at this position - create and add to open list
+                {
+                    Node newNode = new Node(nbrPos, currentNode, endNode.position);
+                    openList.Add(newNode);
+                }
+            }
+
+
+            // TODO HERE
+            //Debug.Log($"o: {openList.Count} / c: {closedList.Count} / a: {availablePositions}");
         }
-        // search ended; return something
-        return;
+
+        if (foundPath)
+        {
+            // TODO retrace path
+        }
+
     }
 
     public void CreateSpawnPoints()
@@ -165,7 +194,7 @@ public class PathFinder : MonoBehaviour
         end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
         // Create start and end nodes
-        startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, start.position);
+        startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, end.position);
         endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
     }
 
@@ -222,20 +251,9 @@ public class PathFinder : MonoBehaviour
 public class Node
 {
     public Vector3 position { get; set; }
-    public Node parent
-    {
-        get
-        {
-            return parent;
-        }
-        set
-        {
-            this.parent = parent;
-            gScore = parent.gScore + 1; ;
-        }
-    }
+    public Node parent { get; private set; }
     public float gScore { get; set; }
-    public float hScore { get; set; }
+    public float hScore { get; private set; }
     public float fScore
     {
         get
@@ -247,21 +265,44 @@ public class Node
     public Node(Vector3 pos, Node parent, Vector3 endNodePosition)
     {
         this.position = pos;
-        hScore = GetScore(this.position, endNodePosition);
+        hScore = GetDistance(this.position, endNodePosition);
         if (parent == null)
         {
             gScore = 0;
         }
         else
         {
+            this.parent = parent;
             gScore = parent.gScore + 1;
         }
     }
 
-    public float GetScore(Vector3 pos1, Vector3 pos2)
+    public void SetParent(Node parent)
     {
-        Vector3 dist = pos1 - pos2;
-        float score = Mathf.Sqrt(dist.x * dist.x + dist.z + dist.z);
+        if (parent == null)
+        {
+            gScore = 0;
+        }
+        else
+        {
+            this.parent = parent;
+            gScore = parent.gScore + 1;
+        }
+    }
+    public float GetDistance(Vector3 origin, Vector3 target)
+    {
+        // Simlified version
+        Vector3 dist = origin - target;
+        float distX = Mathf.Abs(dist.x);
+        float distZ = Mathf.Abs(dist.z);
+        int smaller = (int)Mathf.Min(distX, distZ);
+        int larger  = (int)Mathf.Max(distX, distZ);
+
+        float score = (float)(smaller * 1.4 + (larger - smaller));
+        // Euclidian version
+        //Vector3 dist = origin - target;
+        //float score = Mathf.Sqrt((dist.x * dist.x) + (dist.z * dist.z));
+
         return score;
     }
 }

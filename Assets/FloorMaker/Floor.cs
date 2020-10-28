@@ -20,6 +20,7 @@ public class Floor : MonoBehaviour
     public bool processNeighbours;
     public bool createSplotches;
     public bool showEmpties;
+    public bool colorTiles;
     public bool initSpawns;
     public bool findPath;
 
@@ -45,7 +46,7 @@ public class Floor : MonoBehaviour
     public int[,] gridPOI;
     private Color[,] gridColors;
     public int[,] finalGrid;
-    private Transform[,] gridFillObj;
+    public Transform[,] gridFillObj;
     private Dictionary<Array, bool> grids;
 
     // Overall dimentions
@@ -73,21 +74,20 @@ public class Floor : MonoBehaviour
 
     private void ResetGrids()
     {
-        InitGrids();
-        CreateBasicGrid();
-        CreateBordersGrid();
-        CreateNbrsGrid();
-        CreateSplotches();
-        CombineGrids();
-        MaterializeFloor();
-
-        if (initSpawns)
+        if (!findPath)
         {
-            pathFinder.GetComponent<PathFinder>().CreateSpawnPoints();
+            InitGrids();
+            CreateBasicGrid();
+            CreateBordersGrid();
+            CreateNbrsGrid();
+            CreateSplotches();
+            CombineGrids();
+            MaterializeFloor();
         }
 
-        if (findPath)
+        else
         {
+            pathFinder.GetComponent<PathFinder>().CreateSpawnPoints();
             pathFinder.GetComponent<PathFinder>().FindPath();
         }
     }
@@ -352,8 +352,11 @@ public class Floor : MonoBehaviour
                     int positionX = countW;
                     int positionY = countD;
                     gridFillObj[positionY, positionX] = Instantiate(obj, new Vector3(positionX, 0, positionY), Quaternion.identity);
-                    gridFillObj[positionY, positionX].GetComponent<MeshRenderer>().material.color = gridColors[positionY, positionX];
                     gridFillObj[positionY, positionX].parent = tileHolder;
+                    if (colorTiles)
+                    {
+                        gridFillObj[positionY, positionX].GetComponent<MeshRenderer>().material.color = gridColors[positionY, positionX];
+                    }
                 }
             }
         }
@@ -367,7 +370,7 @@ public class Floor : MonoBehaviour
         List<Vector3> nbrs = new List<Vector3>();
 
         int[] pos = new int[4] { 0, 1, 0, -1 };
-        for (int count = 0; count < 3; count += 1)
+        for (int count = 0; count < 4; count += 1)
         {
             int nbrD = posD + pos[count];
             int nbrW = posW + pos[(count + 3) % 4];
@@ -377,5 +380,22 @@ public class Floor : MonoBehaviour
             }
         }
         return nbrs;
+    }
+
+    public int GetAllAvailablePositions()
+    {
+        int counter = 0;
+        for (int countW = 0; countW < finalGrid.GetLength(0); countW += 1)
+        {
+            for (int countD = 0; countD < finalGrid.GetLength(1); countD += 1)
+            {
+                if (finalGrid[countW, countD] == 1)
+                {
+                    counter += 1;
+                }
+            }
+        }
+
+        return counter;
     }
 }
