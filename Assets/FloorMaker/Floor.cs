@@ -21,6 +21,7 @@ public class Floor : MonoBehaviour
     public bool createSplotches;
     public bool showEmpties;
     public bool initSpawns;
+    public bool findPath;
 
     public int splotchNum = 3;
     public int splotchSize = 3;
@@ -82,7 +83,12 @@ public class Floor : MonoBehaviour
 
         if (initSpawns)
         {
-            pathFinder.GetComponent<PathFinder>().SetUpStartingPoints();
+            pathFinder.GetComponent<PathFinder>().CreateSpawnPoints();
+        }
+
+        if (findPath)
+        {
+            pathFinder.GetComponent<PathFinder>().FindPath();
         }
     }
 
@@ -292,15 +298,15 @@ public class Floor : MonoBehaviour
         {
             for (int countD = posW - mag; countD <= posW + mag; countD += 1)
             {
-                if ((countW > 0) && (countW < depth - 1) && // within depth (border excluded)
-                    (countD > 0) && (countD < width - 1) && // withn width (border excluded)
+                if ((countW > 1) && (countW < depth - 2) && // within depth (double border excluded)
+                    (countD > 1) && (countD < width - 2) && // withn width (double border excluded)
                     (Math.Sqrt(((countW - posD) * (countW - posD)) + ((countD - posW) * (countD - posW))) <= mag)) // within mag of the coordinates
                 {
                     gridSplotches[countW, countD] = 1;
                     // DEBUG ONLY
                     gridColors[countW, countD] = Color.red;
                     // mark the splotch place as special (to avoid collision with other artifacts)
-                    gridPOI[posD, posW] = 1;
+                    gridPOI[countW, countD] = 1;
                 }
             }
         }

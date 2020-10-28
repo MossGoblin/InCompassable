@@ -34,7 +34,7 @@ public class PathFinder : MonoBehaviour
         FindPath();
     }
 
-    private void FindPath()
+    public void FindPath()
     {
         Debug.Log("On The Path...");
         Debug.Log($"{floor.finalGrid.Length}");
@@ -230,7 +230,8 @@ public class Node
         }
         set
         {
-            gScore = 1;
+            this.parent = parent;
+            gScore = parent.gScore + 1; ;
         }
     }
     public float gScore { get; set; }
