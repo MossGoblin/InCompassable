@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SocialPlatforms.Impl;
 using Random = UnityEngine.Random;
 
 public class PathFinder : MonoBehaviour
@@ -13,6 +12,9 @@ public class PathFinder : MonoBehaviour
 
     public Floor floor;
     public Transform spawnPoints;
+
+    public int minFreeNbrs = 2;
+    public int padding = 2;
 
     // Init lists
     public List<Node> openList { get; set; }
@@ -46,9 +48,6 @@ public class PathFinder : MonoBehaviour
 
         Debug.Log("On The Path...");
 
-        int availablePositions = floor.GetAllAvailablePositions();
-        Debug.Log($"{availablePositions}");
-
         // Init lists
         List<Node> openList = new List<Node>();
         List<Node> closedList = new List<Node>();
@@ -60,7 +59,6 @@ public class PathFinder : MonoBehaviour
         float maxFScore = 0f;
 
         // Loop
-        bool searching = true;
         bool foundPath = false;
         while (openList.Count > 0)
         {
@@ -68,7 +66,6 @@ public class PathFinder : MonoBehaviour
             if (openList.Count == 0)
             {
                 Debug.Log("NO PATH");
-                searching = false;
                 break;
             }
             // Get current node from openList - lowest fScore
@@ -88,7 +85,6 @@ public class PathFinder : MonoBehaviour
             if ((int)currentNode.position.x == (int)endNode.position.x && (int)currentNode.position.z == (int)endNode.position.z)
             {
                 Debug.Log($"REACHED END {currentNode.position}");
-                searching = false;
                 foundPath = true;
                 break;
             }
@@ -122,11 +118,7 @@ public class PathFinder : MonoBehaviour
                 }
             }
 
-
-            // TODO HERE
-            //Debug.Log($"o: {openList.Count} / c: {closedList.Count} / a: {availablePositions}");
             yield return null;
-
         }
 
         if (foundPath)
@@ -145,49 +137,39 @@ public class PathFinder : MonoBehaviour
         // If not - start searching in an expanding circle around the first point
 
         // Set up variables
-        int depthHalf = 0;
-        int widthHalf = 0;
-        int halfOfDepth = 0;
+        int startWidthHalf = 0;
+        int startDepthHalf = 0;
         int halfOfWidth = 0;
-        int startPositionDepth = 0;
+        int halfOfDepth = 0;
         int startPositionWidth = 0;
-        int endPositionDepth = 0;
+        int startPositionDepth = 0;
         int endPositionWidth = 0;
+        int endPositionDepth = 0;
+
+        halfOfWidth = floor.width / 2;
+        halfOfDepth = floor.depth / 2;
 
         // Pick a starting point
-        widthHalf = Random.Range(0, 1);
-        depthHalf = Random.Range(0, 1);
-        halfOfWidth = floor.width / 2 - 4;
-        halfOfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
-        startPositionWidth = Random.Range(0, halfOfWidth) + widthHalf * halfOfWidth;
-        startPositionDepth = Random.Range(0, halfOfDepth) + depthHalf * halfOfDepth;
+        startWidthHalf = Random.Range(0, 1);
+        startDepthHalf = Random.Range(0, 1);
+        // Somewhere within one of the quadrants, determined by startWidthHalf and startDepthHalf
+        startPositionWidth = startWidthHalf * halfOfWidth + Random.Range(padding, halfOfWidth - padding);
+        startPositionDepth = startDepthHalf * halfOfDepth + Random.Range(padding, halfOfDepth - padding);
 
-        // check if the starting point is available
-        bool searching = true;
-        if (!AccessibleSpot(startPositionWidth, startPositionDepth)) // if not accessible
-        {
-            int searchRadius = 1;
-            while (searching)
-            {
-                int numberOfPossiblePositions = 0; // TODO number of possible positions - CALCULATE
-                int numberOfCheckedPositions = 0;
-                // find new random point within searchRadius
-                startPositionWidth = Random.Range(0, searchRadius);
-                startPositionDepth = (int)Mathf.Sqrt(searchRadius * searchRadius - startPositionWidth * startPositionWidth);
-                if (AccessibleSpot(startPositionWidth, startPositionDepth))
-                {
-                    searching = false;
-                }
-                numberOfCheckedPositions++;
-                if (numberOfCheckedPositions >= numberOfPossiblePositions) // We have exhausted all possible positions - expand the serach
-                {
-                    searchRadius += 1;
-                    break;
-                }
-            }
-        }
+        // find a spot for the start point
+        Vector3 startPositionVector = ScoutAround(startPositionWidth, startPositionDepth);
+        Debug.Log($"start: {startPositionVector.x}/{startPositionVector.z}");
 
-        // TODO Repeat for endPoint
+        // Repeat for endPoint
+        int endWidthHalf = 1 - startWidthHalf;
+        int endDepthHalf = 1 - startDepthHalf;
+        endPositionWidth = Random.Range(padding, halfOfWidth - padding) + endWidthHalf * halfOfWidth;
+        endPositionDepth = Random.Range(padding, halfOfDepth - padding) + endDepthHalf * halfOfDepth;
+
+        // find a spot for the start point
+        Vector3 endPositionVector = ScoutAround(endPositionWidth, endPositionDepth);
+        Debug.Log($" end: {endPositionVector.x}/{endPositionVector.z}");
+
 
         // Remove old markers
         foreach (Transform obj in spawnPoints)
@@ -196,10 +178,10 @@ public class PathFinder : MonoBehaviour
         }
 
         // Place markers
-        Transform start = Instantiate(marker, new Vector3(startPositionWidth, 3, startPositionDepth), Quaternion.identity);
+        Transform start = Instantiate(marker, startPositionVector, Quaternion.identity);
         start.parent = spawnPoints;
         start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-        Transform end = Instantiate(marker, new Vector3(endPositionWidth, 3, endPositionDepth), Quaternion.identity);
+        Transform end = Instantiate(marker, endPositionVector, Quaternion.identity);
         end.parent = spawnPoints;
         end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
@@ -212,13 +194,87 @@ public class PathFinder : MonoBehaviour
         Debug.Log($"end: {end.transform.position}");
     }
 
+    private Vector3 ScoutAround(int width, int depth)
+    {
+        int positionWidth = width;
+        int positionDepth = depth;
+        bool searching = true;
+        if (!AccessibleSpot(positionWidth, positionDepth)) // if not accessible
+        {
+            DebugColor(new Vector3(positionWidth, 0, positionDepth), Color.cyan);
+
+            int searchRadius = 1;
+            bool found = false;
+            while (searching)
+            {
+                // create width cooridinate map - only deltas!!
+                int coordinateMapLength = searchRadius * 4 + 1; // from start to end and half back
+                int[] coordinateMap = new int[coordinateMapLength];
+                for (int countA = 0; countA < searchRadius * 2 + 1; countA += 1)
+                {
+                    coordinateMap[countA] = countA - searchRadius;
+                }
+                for (int countB = 0; countB < searchRadius * 2; countB += 1)
+                {
+                    // counting backwards from the right most side of the coordinate map
+                    coordinateMap[searchRadius * 2 + 1 + countB] = searchRadius - 1 - countB;
+                }
+
+                // iterate area perimeter:
+                // the map gives W coordinate directly
+                // D coordinate lead with searchRadius steps
+
+                for (int countC = 0; countC < coordinateMap.Length - searchRadius; countC += 1)
+                {
+                    int searchPositionW = positionWidth + coordinateMap[countC];
+                    int searchPositionDIndex = (countC + searchRadius); // no looping, simply add the search radius
+                    int searchPositionD = positionDepth + coordinateMap[searchPositionDIndex];
+                    if (AccessibleSpot(searchPositionW, searchPositionD))
+                    {
+                        searching = false;
+                        found = true;
+                        positionWidth = searchPositionW;
+                        positionDepth = searchPositionD;
+                        break;
+                    }
+                    Debug.Log($"{searchPositionW},{searchPositionD}");
+                    DebugColor(new Vector3(searchPositionW, 0, searchPositionD), Color.cyan);
+
+                }
+
+                if (!found)
+                {
+                    searchRadius += 1;
+                }
+            }
+        }
+        return new Vector3(positionWidth, 0, positionDepth);
+    }
+
+    public void DebugColor(Vector3 position, Color color)
+    {
+        Transform[] flatGrid = floor.gridFillObj.Cast<Transform>().ToArray();
+        Transform obj = Array.Find(flatGrid, o => o.transform.position.x == position.x && o.transform.position.z == position.z);
+        if (obj != null)
+        {
+            obj.GetComponent<MeshRenderer>().material.color = color;
+        }
+    }
     private bool AccessibleSpot(int width, int depth)
     {
-        // Count neighbours
+        // Sanily check
+        if (width <= 0 || width >= floor.finalGrid.GetLength(0) || depth <= 0 || depth >= floor.finalGrid.GetLength(1))
+        {
+            return false;
+        }
+
+        // Regular check
         if (floor.finalGrid[width, depth] == 1) // fail - occupied position
         {
             return false;
         }
+
+        // POI check
         if (floor.gridPOI[width, depth] == 1) // fail - place is POI
         {
             return false;
@@ -227,34 +283,34 @@ public class PathFinder : MonoBehaviour
         // count free nbrs
         int freeNbrs = 0;
         int[] pos = new int[4] { 0, 1, 0, -1 };
-        for (int count = 0; count < 3; count += 1)
+        for (int count = 0; count < 4; count += 1)
         {
             int posD = pos[count];
             int posW = pos[(count + 3) % 4];
             // check if nbr is in the border
-            if ((depth + posD <= 2) || (depth + posD >= (floor.width - 4)))
+            if ((depth + posD <= 2) || (depth + posD >= (floor.depth - 2)))
             {
-                break;
+                continue;
             }
-            if ((width + posW <= 2) || (width + posW >= (floor.depth - 4)))
+            if ((width + posW <= 2) || (width + posW >= (floor.width - 2)))
             {
-                break;
+                continue;
             }
             // if nbr is occupied
             if (floor.finalGrid[width + posW, depth + posD] == 1)
             {
-                break;
+                continue;
             }
             // if nbr is POI
             if (floor.gridPOI[width + posW, depth + posD] == 1)
             {
-                break;
+                continue;
             }
 
             freeNbrs += 1;
         }
 
-        if (freeNbrs >= 3)
+        if (freeNbrs >= minFreeNbrs)
         {
             return true;
         }
