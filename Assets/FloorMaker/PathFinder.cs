@@ -139,64 +139,56 @@ public class PathFinder : MonoBehaviour
     {
         Debug.Log("Spawning points...");
 
-        List<Vector3> undesirables = new List<Vector3>();
+        // TODO ALGO
+        // Pick a point inside one half of the floor
+        // Check if available
+        // If not - start searching in an expanding circle around the first point
 
+        // Set up variables
         int depthHalf = 0;
         int widthHalf = 0;
-        int halfDepth = 0;
-        int halfWidth = 0;
+        int halfOfDepth = 0;
+        int halfOfWidth = 0;
         int startPositionDepth = 0;
         int startPositionWidth = 0;
         int endPositionDepth = 0;
         int endPositionWidth = 0;
 
-        // Pick start point
-        // Find a point with at least 3 empty nbrs
-        bool searching = true;
-        while (searching)
-        {
-            // pick random half of the map (width and depth) for a starting point
-            widthHalf = Random.Range(0, 1);
-            depthHalf = Random.Range(0, 1);
-            halfWidth = floor.width / 2 - 4;
-            halfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
-            startPositionWidth = Random.Range(0, halfWidth) + widthHalf * halfWidth;
-            startPositionDepth = Random.Range(0, halfDepth) + depthHalf * halfDepth;
+        // Pick a starting point
+        widthHalf = Random.Range(0, 1);
+        depthHalf = Random.Range(0, 1);
+        halfOfWidth = floor.width / 2 - 4;
+        halfOfDepth = floor.depth / 2 - 4; // Shave 2 on each side to account for the double tile borders
+        startPositionWidth = Random.Range(0, halfOfWidth) + widthHalf * halfOfWidth;
+        startPositionDepth = Random.Range(0, halfOfDepth) + depthHalf * halfOfDepth;
 
-            // Check if the position is viable
-            Vector3 startVector = new Vector3(startPositionWidth, 0, startPositionDepth);
-            if (!undesirables.Contains(startVector))
+        // check if the starting point is available
+        bool searching = true;
+        if (!AccessibleSpot(startPositionWidth, startPositionDepth)) // if not accessible
+        {
+            int searchRadius = 1;
+            while (searching)
             {
+                int numberOfPossiblePositions = 0; // TODO number of possible positions - CALCULATE
+                int numberOfCheckedPositions = 0;
+                // find new random point within searchRadius
+                startPositionWidth = Random.Range(0, searchRadius);
+                startPositionDepth = (int)Mathf.Sqrt(searchRadius * searchRadius - startPositionWidth * startPositionWidth);
                 if (AccessibleSpot(startPositionWidth, startPositionDepth))
                 {
-                    undesirables.Add(startVector);
                     searching = false;
                 }
-            }
-        }
-
-        // Pick end point
-        // Endpoint - depth range - no limit (half width to full depth); width range - half depth up to 2/3 width
-        searching = true;
-        while (searching)
-        {
-            int endPositionWidthRaw = (startPositionWidth + Random.Range(halfWidth, halfWidth * 4 / 3));
-            endPositionWidth = endPositionWidthRaw % (floor.width - 4);
-            int endPositionDepthRaw = (startPositionDepth + Random.Range(halfDepth, 2 * halfDepth));
-            endPositionDepth = endPositionDepthRaw % (floor.depth - 4);
-            // Check if the position is viable
-            Vector3 endVector = new Vector3(endPositionWidth, 0, endPositionDepth);
-            if (!undesirables.Contains(endVector))
-            {
-                if (AccessibleSpot(endPositionWidth, endPositionDepth))
+                numberOfCheckedPositions++;
+                if (numberOfCheckedPositions >= numberOfPossiblePositions) // We have exhausted all possible positions - expand the serach
                 {
-                    undesirables.Add(endVector);
-                    searching = false;
+                    searchRadius += 1;
+                    break;
                 }
             }
         }
 
-        Debug.Log($"undesirables: {undesirables.Count}");
+        // TODO Repeat for endPoint
+
         // Remove old markers
         foreach (Transform obj in spawnPoints)
         {
