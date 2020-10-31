@@ -96,8 +96,8 @@ public class Floor : MonoBehaviour
     private void InitGrids()
     {
         // cache dimentions
-        this.width = floorCellWidth * cellRows;
-        this.depth = floorCellDepth * cellCols;
+        this.width = floorCellWidth * cellCols;
+        this.depth = floorCellDepth * cellRows;
 
         grids = new Dictionary<Array, bool>();
 

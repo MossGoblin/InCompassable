@@ -25,14 +25,14 @@
 
     private void InitGrid()
     {
-        this.counted = Depth * Width;
+        this.counted = Width * Depth;
         this.used = UnityEngine.Random.Range(Min, Max) + 1;
-        grid = new int[Depth, Width];
+        grid = new int[Width, Depth];
         for (int countD = 0; countD < Depth; countD += 1)
         {
             for (int countW = 0; countW < Width; countW += 1)
             {
-                grid[countD, countW] = GetCellValue();
+                grid[countW, countD] = GetCellValue();
             }
         }
     }
