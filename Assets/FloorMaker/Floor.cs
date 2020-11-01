@@ -208,9 +208,9 @@ public class Floor : MonoBehaviour
             return;
         }
 
-        for (int countD = 1; countD < width - 1; countD += 1)
+        for (int countD = 1; countD < depth - 1; countD += 1)
         {
-            for (int countW = 1; countW < depth - 1; countW += 1)
+            for (int countW = 1; countW < width - 1; countW += 1)
             {
                 int nbrCount = gridBasic[countW, countD - 1] +
                                   gridBasic[countW, countD + 1] +
