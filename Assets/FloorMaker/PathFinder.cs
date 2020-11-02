@@ -38,7 +38,7 @@ public class PathFinder : MonoBehaviour
         FindPath();
     }
 
-    public IEnumerator FindPath()
+    public void FindPath()
     {
         // Decolorize all objects
         foreach (Transform obj in floor.gridFillObj)
@@ -117,8 +117,6 @@ public class PathFinder : MonoBehaviour
                     openList.Add(newNode);
                 }
             }
-
-            yield return null;
         }
 
         if (foundPath)
@@ -127,6 +125,77 @@ public class PathFinder : MonoBehaviour
         }
     }
 
+
+    public void CreateSpawns(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
+    {
+        // Select an available point
+        Vector3 floodPoint = SelectAvailablepoint(grid, paddingWidthLeft, paddingWidthRight, paddingDepthLeft, paddingDepthRight);
+
+        // Floodfill the plane
+
+        Vector3[] floodPlane = FloodThePlane(grid, floodPoint);
+
+        // Select points in the flood
+
+    }
+
+
+
+    private Vector3[] FloodThePlane(int[,] grid, Vector3 floodPoint)
+    {
+        bool flooding = true;
+
+        Vector3 currentPoint = floodPoint;
+        List<Vector3> dry = new List<Vector3>();
+        List<Vector3> flooded = new List<Vector3>();
+
+        while (flooding)
+        {
+            flooded.Add(currentPoint);
+            // get all nbrs of the current point and add the to the unchecked list
+            List<Vector3> nbrs = floor.GetNbrs(currentPoint);
+            if (nbrs.Count == 0)
+            {
+                // EXIT with a grace
+                flooding = false;
+            }
+            foreach(Vector3 nbr in nbrs)
+            {
+                if (!flooded.Contains(nbr))
+                {
+                    dry.Add(nbr);
+                }
+            }
+
+            currentPoint = dry.First();
+            dry.Remove(currentPoint);
+        }
+    }
+
+    private Vector3 SelectAvailablepoint(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
+    {
+        Debug.Log("Spawning point...");
+
+        // TODO ALGO
+        // Pick a point inside one half of the floor
+        // Check if available
+        // If not - start searching in an expanding circle around the first point
+
+        float scaleWidth = Random.Range(0, 1);
+        float scaleDepth = Random.Range(0, 1);
+
+        int windowWidth = paddingWidthRight - paddingWidthLeft;
+        int windowDepth = paddingDepthRight - paddingDepthLeft;
+
+        int positionWidth = (int)(windowWidth * scaleWidth + paddingWidthLeft);
+        int positionDepth = (int)(windowDepth * scaleDepth + paddingDepthLeft);
+
+        // find a spot for the start point
+        Vector3 positionVector = ScoutAround(positionWidth, positionDepth);
+        Debug.Log($"point: {positionVector.x}/{positionVector.z}");
+
+        return positionVector;
+    }
     public void CreateSpawnPoints()
     {
         Debug.Log("Spawning points...");

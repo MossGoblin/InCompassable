@@ -88,8 +88,7 @@ public class Floor : MonoBehaviour
         else
         {
             pathFinder.GetComponent<PathFinder>().CreateSpawnPoints();
-            StartCoroutine(pathFinder.GetComponent<PathFinder>().FindPath());
-            //pathFinder.GetComponent<PathFinder>().FindPath();
+            pathFinder.GetComponent<PathFinder>().FindPath();
         }
     }
 
@@ -362,10 +361,10 @@ public class Floor : MonoBehaviour
         }
     }
 
-    public List<Vector3> GetNbrs(Node node)
+    public List<Vector3> GetNbrs(Vector3 position)
     {
-        int posW = (int)node.position.x;
-        int posD = (int)node.position.z;
+        int posW = (int)position.x;
+        int posD = (int)position.z;
 
         List<Vector3> nbrs = new List<Vector3>();
 
