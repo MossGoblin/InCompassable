@@ -426,10 +426,8 @@ MonoBehaviour:
   cellMax: 15
   splotchNum: 5
   splotchSize: 8
-  paddingWidthLeft: 0
-  paddingWidthRight: 0
-  paddingDepthLeft: 0
-  paddingDepthRight: 0
+  leftPointDeviation: 0.1498
+  rightPointDeviation: 0.1507
 --- !u!4 &1619756426
 Transform:
   m_ObjectHideFlags: 0

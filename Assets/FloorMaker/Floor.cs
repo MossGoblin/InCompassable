@@ -35,14 +35,10 @@ public class Floor : MonoBehaviour
     public int splotchNum = 3;
     public int splotchSize = 3;
 
-    [Range(0f, 0.45f)]
-    public float paddingWidthLeft;
-    [Range(0f, 0.45f)]
-    public float paddingWidthRight;
-    [Range(0f, 0.45f)]
-    public float paddingDepthBelow;
-    [Range(0f, 0.45f)]
-    public float paddingDepthAbove;
+    [Range(0.1f, 0.2f)]
+    public float leftPointDeviation = 0.2f;
+    [Range(0.1f, 0.2f)]
+    public float rightPointDeviation = 0.2f;
 
 
     // Grids
@@ -97,7 +93,7 @@ public class Floor : MonoBehaviour
         else
         {
             // TODO Create Spawns
-            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, paddingWidthLeft, paddingWidthRight, paddingDepthBelow, paddingDepthAbove);
+            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, leftPointDeviation, rightPointDeviation);
         }
     }
 

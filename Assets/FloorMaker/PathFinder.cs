@@ -25,7 +25,7 @@ public class PathFinder : MonoBehaviour
     public Node endNode;
 
 
-    public void CreateSpawns(int[,] grid, float paddingWidthLeft, float paddingWidthRight, float paddingDepthBelow, float paddingDepthAbove)
+    public void CreateSpawns(int[,] grid, float leftPointDeviation, float rightPointDeviation)
     {
         // Select an available point for starting the flood
         Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
@@ -42,31 +42,30 @@ public class PathFinder : MonoBehaviour
             return;
         }
 
-        // Select points in the flood
-        // Calculate padding
-        int borderLeft = (int)(grid.GetLength(0) / 2 * paddingWidthLeft);
-        int borderRight = (int)(grid.GetLength(0) / 2 * 3 * paddingWidthRight);
-        int borderBelow = (int)(grid.GetLength(1) / 2 * paddingDepthBelow);
-        int borderAbove = (int)(grid.GetLength(1) / 2 * 3 * paddingDepthAbove);
-
-        int width = (int)((borderRight - borderLeft) / 2);
-        int depth = (int)((borderAbove - borderBelow) / 2);
-        Vector3 centerOfLeftArea = new Vector3(width, 0, depth);
-
-        // Create a dictionary out of the floodList - set value to distance to firstPoint
-        Dictionary<Vector3, float> floodDistance = new Dictionary<Vector3, float>();
-        foreach(Vector3 point in floodPlane)
+        int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
+        // Get the list into a grid
+        foreach (Vector3 point in floodPlane)
         {
-            Vector3 distance = (point - centerOfLeftArea).normalized;
-            float distance_magnitude = distance.x + distance.z;
-            floodDistance.Add(point, distance_magnitude);
+            floodGrid[(int)point.x, (int)point.z] = 1;
         }
 
-        // Order the dictionary
-        Dictionary<Vector3, float> orderedDict = floodDistance.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-        Vector3 firstPoint = orderedDict.FirstOrDefault().Key;
-        DebugColor(firstPoint, Color.yellow);
-        Debug.Log(firstPoint);
+        // Select random starting poins
+        Vector3 leftCenter = new Vector3(floodGrid.GetLength(0) / 2, 0, floodGrid.GetLength(1) / 2);
+        Vector3 rightCenter = new Vector3(floodGrid.GetLength(0) / 2 * 3 , 0, floodGrid.GetLength(1) / 2);
+
+        Vector3 randomLeft = Random.insideUnitSphere.normalized * leftPointDeviation * floodGrid.GetLength(1);
+        Vector3 randomRight = Random.insideUnitSphere.normalized * rightPointDeviation * floodGrid.GetLength(1);
+
+        leftCenter = ScoutAround(floodGrid, leftCenter + new Vector3(randomLeft.x, 0, randomLeft.z));
+        rightCenter = ScoutAround(floodGrid, rightCenter + new Vector3(randomRight.x, 0, randomRight.z));
+
+
+        // Select a random point for left start
+
+        DebugColor(leftCenter, Color.yellow);
+        Debug.Log($"left: {leftCenter}");
+        DebugColor(rightCenter, Color.red);
+        Debug.Log($"left: {rightCenter}");
 
     }
 
@@ -114,73 +113,6 @@ public class PathFinder : MonoBehaviour
         }
 
         return flooded;
-    }
-
-    public void CreateSpawnPoints()
-    {
-        Debug.Log("Spawning points...");
-
-        // TODO ALGO
-        // Pick a point inside one half of the floor
-        // Check if available
-        // If not - start searching in an expanding circle around the first point
-
-        // Set up variables
-        int startWidthHalf = 0;
-        int startDepthHalf = 0;
-        int halfOfWidth = 0;
-        int halfOfDepth = 0;
-        int startPositionWidth = 0;
-        int startPositionDepth = 0;
-        int endPositionWidth = 0;
-        int endPositionDepth = 0;
-
-        halfOfWidth = floor.width / 2;
-        halfOfDepth = floor.depth / 2;
-
-        // Pick a starting point
-        startWidthHalf = Random.Range(0, 1);
-        startDepthHalf = Random.Range(0, 1);
-        // Somewhere within one of the quadrants, determined by startWidthHalf and startDepthHalf
-        startPositionWidth = startWidthHalf * halfOfWidth + Random.Range(padding, halfOfWidth - padding);
-        startPositionDepth = startDepthHalf * halfOfDepth + Random.Range(padding, halfOfDepth - padding);
-
-        // find a spot for the start point
-        //Vector3 startPositionVector = ScoutAround(startPositionWidth, startPositionDepth);
-        //Debug.Log($"start: {startPositionVector.x}/{startPositionVector.z}");
-
-        // Repeat for endPoint
-        int endWidthHalf = 1 - startWidthHalf;
-        int endDepthHalf = 1 - startDepthHalf;
-        endPositionWidth = Random.Range(padding, halfOfWidth - padding) + endWidthHalf * halfOfWidth;
-        endPositionDepth = Random.Range(padding, halfOfDepth - padding) + endDepthHalf * halfOfDepth;
-
-        // find a spot for the start point
-        //Vector3 endPositionVector = ScoutAround(endPositionWidth, endPositionDepth);
-        //Debug.Log($" end: {endPositionVector.x}/{endPositionVector.z}");
-
-
-        // Remove old markers
-        foreach (Transform obj in spawnPoints)
-        {
-            Destroy(obj.gameObject);
-        }
-
-        // Place markers
-        //Transform start = Instantiate(marker, startPositionVector, Quaternion.identity);
-        //start.parent = spawnPoints;
-        //start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-        //Transform end = Instantiate(marker, endPositionVector, Quaternion.identity);
-        //end.parent = spawnPoints;
-        //end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
-
-        // Create start and end nodes
-        //startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, end.position);
-        //endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
-
-        //// LogDump spawn positions
-        //Debug.Log($"start: {start.transform.position}");
-        //Debug.Log($"end: {end.transform.position}");
     }
 
     private Vector3 ScoutAround(int[,] grid, Vector3 initPoint)
@@ -252,20 +184,13 @@ public class PathFinder : MonoBehaviour
     {
         int width = (int)point.x;
         int depth = (int)point.z;
-        // Sanily check
-        if (width <= 0 || width >= floor.finalGrid.GetLength(0) || depth <= 0 || depth >= floor.finalGrid.GetLength(1))
+        // Sanity check
+        if (width <= 0 || width >= grid.GetLength(0) || depth <= 0 || depth >= grid.GetLength(1))
         {
             return false;
         }
 
-        // Regular check
-        if (floor.finalGrid[width, depth] == 1) // fail - occupied position
-        {
-            return false;
-        }
-
-        // POI check
-        if (floor.gridPOI[width, depth] == 1) // fail - place is POI
+        if (grid[width, depth] == 1) // fail - occupied position
         {
             return false;
         }
