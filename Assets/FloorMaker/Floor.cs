@@ -32,8 +32,17 @@ public class Floor : MonoBehaviour
     public int cellMin = 15;
     public int cellMax = 25;
 
-        public int splotchNum = 3;
+    public int splotchNum = 3;
     public int splotchSize = 3;
+
+    [Range(0f, 0.45f)]
+    public float paddingWidthLeft;
+    [Range(0f, 0.45f)]
+    public float paddingWidthRight;
+    [Range(0f, 0.45f)]
+    public float paddingDepthBelow;
+    [Range(0f, 0.45f)]
+    public float paddingDepthAbove;
 
 
     // Grids
@@ -88,7 +97,7 @@ public class Floor : MonoBehaviour
         else
         {
             // TODO Create Spawns
-            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, 0, 0, 0, 0);
+            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, paddingWidthLeft, paddingWidthRight, paddingDepthBelow, paddingDepthAbove);
         }
     }
 

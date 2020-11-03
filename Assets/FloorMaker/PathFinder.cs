@@ -25,9 +25,9 @@ public class PathFinder : MonoBehaviour
     public Node endNode;
 
 
-    public void CreateSpawns(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
+    public void CreateSpawns(int[,] grid, float paddingWidthLeft, float paddingWidthRight, float paddingDepthBelow, float paddingDepthAbove)
     {
-        // Select an available point for startingthe flood
+        // Select an available point for starting the flood
         Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
         //Vector3 floodPoint = SelectAvailablePoint(grid, paddingWidthLeft, paddingWidthRight, paddingDepthLeft, paddingDepthRight);
 
@@ -35,12 +35,38 @@ public class PathFinder : MonoBehaviour
         List<Vector3> floodPlane = FloodThePlane(grid, floodPoint);
 
         // TODO - check if we flooded at least half the plane
-        if (floodPlane.Count >= grid.GetLength(0) * grid.GetLength(1))
+        int planeSize = grid.GetLength(0) * grid.GetLength(1);
+        if (floodPlane.Count < planeSize / 2)
         {
+            Debug.Log($"Flooded only {floodPlane.Count} out of {planeSize} cells");
             return;
         }
-        // Select points in the flood
 
+        // Select points in the flood
+        // Calculate padding
+        int borderLeft = (int)(grid.GetLength(0) / 2 * paddingWidthLeft);
+        int borderRight = (int)(grid.GetLength(0) / 2 * 3 * paddingWidthRight);
+        int borderBelow = (int)(grid.GetLength(1) / 2 * paddingDepthBelow);
+        int borderAbove = (int)(grid.GetLength(1) / 2 * 3 * paddingDepthAbove);
+
+        int width = (int)((borderRight - borderLeft) / 2);
+        int depth = (int)((borderAbove - borderBelow) / 2);
+        Vector3 centerOfLeftArea = new Vector3(width, 0, depth);
+
+        // Create a dictionary out of the floodList - set value to distance to firstPoint
+        Dictionary<Vector3, float> floodDistance = new Dictionary<Vector3, float>();
+        foreach(Vector3 point in floodPlane)
+        {
+            Vector3 distance = (point - centerOfLeftArea).normalized;
+            float distance_magnitude = distance.x + distance.z;
+            floodDistance.Add(point, distance_magnitude);
+        }
+
+        // Order the dictionary
+        Dictionary<Vector3, float> orderedDict = floodDistance.OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+        Vector3 firstPoint = orderedDict.FirstOrDefault().Key;
+        DebugColor(firstPoint, Color.yellow);
+        Debug.Log(firstPoint);
 
     }
 
@@ -88,31 +114,6 @@ public class PathFinder : MonoBehaviour
         }
 
         return flooded;
-    }
-
-    private Vector3 SelectAvailablePoint(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
-    {
-        Debug.Log("Spawning point...");
-
-        // TODO ALGO
-        // Pick a point inside one half of the floor
-        // Check if available
-        // If not - start searching in an expanding circle around the first point
-
-        float scaleWidth = Random.Range(0, 1);
-        float scaleDepth = Random.Range(0, 1);
-
-        int windowWidth = paddingWidthRight - paddingWidthLeft;
-        int windowDepth = paddingDepthRight - paddingDepthLeft;
-
-        int positionWidth = (int)(windowWidth * scaleWidth + paddingWidthLeft);
-        int positionDepth = (int)(windowDepth * scaleDepth + paddingDepthLeft);
-
-        // find a spot for the start point
-        Vector3 positionVector = ScoutAround(grid, new Vector3(positionWidth, 0, positionDepth));
-        Debug.Log($"point: {positionVector.x}/{positionVector.z}");
-
-        return positionVector;
     }
 
     public void CreateSpawnPoints()
