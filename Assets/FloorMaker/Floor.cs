@@ -87,8 +87,8 @@ public class Floor : MonoBehaviour
 
         else
         {
-            pathFinder.GetComponent<PathFinder>().CreateSpawnPoints();
-            pathFinder.GetComponent<PathFinder>().FindPath();
+            // TODO Create Spawns
+            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, 0, 0, 0, 0);
         }
     }
 

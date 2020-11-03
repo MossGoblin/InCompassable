@@ -24,124 +24,28 @@ public class PathFinder : MonoBehaviour
     public Node startNode;
     public Node endNode;
 
-    private void Start()
-    {
-    }
-
-    // Update is called once per frame
-    private void Update()
-    {
-    }
-    public void SetUpStartingPoints()
-    {
-        CreateSpawnPoints();
-        FindPath();
-    }
-
-    public void FindPath()
-    {
-        // Decolorize all objects
-        foreach (Transform obj in floor.gridFillObj)
-        {
-            obj.GetComponent<MeshRenderer>().material.color = Color.gray;
-        }
-
-        Debug.Log("On The Path...");
-
-        // Init lists
-        List<Node> openList = new List<Node>();
-        List<Node> closedList = new List<Node>();
-
-        // Add startNode to openList
-        openList.Add(startNode);
-
-        // DBG Debug section
-        float maxFScore = 0f;
-
-        // Loop
-        bool foundPath = false;
-        while (openList.Count > 0)
-        {
-            // If the open list is empty - exit with no path
-            if (openList.Count == 0)
-            {
-                Debug.Log("NO PATH");
-                break;
-            }
-            // Get current node from openList - lowest fScore
-            Node currentNode = openList.OrderBy(n => n.fScore).FirstOrDefault();
-            openList.Remove(currentNode);
-            closedList.Add(currentNode);
-
-            // DBG Debug section
-            maxFScore = Mathf.Max(currentNode.fScore, maxFScore);
-            // Debug.Log($"{currentNode.position.x},{currentNode.position.z} / {endNode.position.x},{endNode.position.z} : {currentNode.fScore}/{maxFScore}");
-            // Debug only
-            if (floor.gridFillObj[(int)currentNode.position.x, (int)currentNode.position.z] != null)
-            {
-                floor.gridFillObj[(int)currentNode.position.x, (int)currentNode.position.z].GetComponent<MeshRenderer>().material.color = Color.red;
-            }
-
-            if ((int)currentNode.position.x == (int)endNode.position.x && (int)currentNode.position.z == (int)endNode.position.z)
-            {
-                Debug.Log($"REACHED END {currentNode.position}");
-                foundPath = true;
-                break;
-            }
-
-            // Get nbrs of current node
-            List<Vector3> nbrPositions = floor.GetNbrs(currentNode);
-            // Iterate nbrs of current node
-            foreach (Vector3 nbrPos in nbrPositions)
-            {
-                // if there is a closed Node at that position - skip it
-                Node possiblyClosed = closedList.FirstOrDefault(n => n.position == nbrPos);
-                if (possiblyClosed != null)
-                {
-                    continue;
-                }
-
-                // check if there is an open node at that position
-                Node possiblyOpen = openList.FirstOrDefault(n => n.position == nbrPos);
-                if (possiblyOpen != null) // there is an open node at that position - possible update
-                {
-                    // check if the path through the current node to nbr is shorter
-                    if (possiblyOpen.gScore > currentNode.gScore + 1) // shorter way to the nbr via the current node - update parent and gScore
-                    {
-                        possiblyOpen.SetParent(currentNode); // this should also recalculate gScore
-                    }
-                }
-                else // No node at this position - create and add to open list
-                {
-                    Node newNode = new Node(nbrPos, currentNode, endNode.position);
-                    openList.Add(newNode);
-                }
-            }
-        }
-
-        if (foundPath)
-        {
-            // TODO retrace path
-        }
-    }
-
 
     public void CreateSpawns(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
     {
-        // Select an available point
-        Vector3 floodPoint = SelectAvailablepoint(grid, paddingWidthLeft, paddingWidthRight, paddingDepthLeft, paddingDepthRight);
+        // Select an available point for startingthe flood
+        Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
+        //Vector3 floodPoint = SelectAvailablePoint(grid, paddingWidthLeft, paddingWidthRight, paddingDepthLeft, paddingDepthRight);
 
         // Floodfill the plane
+        List<Vector3> floodPlane = FloodThePlane(grid, floodPoint);
 
-        Vector3[] floodPlane = FloodThePlane(grid, floodPoint);
-
+        // TODO - check if we flooded at least half the plane
+        if (floodPlane.Count >= grid.GetLength(0) * grid.GetLength(1))
+        {
+            return;
+        }
         // Select points in the flood
+
 
     }
 
 
-
-    private Vector3[] FloodThePlane(int[,] grid, Vector3 floodPoint)
+    private List<Vector3> FloodThePlane(int[,] grid, Vector3 floodPoint)
     {
         bool flooding = true;
 
@@ -149,30 +53,44 @@ public class PathFinder : MonoBehaviour
         List<Vector3> dry = new List<Vector3>();
         List<Vector3> flooded = new List<Vector3>();
 
+        dry.Add(currentPoint);
+
         while (flooding)
         {
+            // Get a point from teh dry list and mark it as flooded
+            currentPoint = dry.First();
+            dry.Remove(currentPoint);
             flooded.Add(currentPoint);
-            // get all nbrs of the current point and add the to the unchecked list
+
+            DebugColor(currentPoint, Color.cyan);
+
+
+
+            // get all nbrs of the current point and add the to the dry list if not already flooded
             List<Vector3> nbrs = floor.GetNbrs(currentPoint);
-            if (nbrs.Count == 0)
+            if (nbrs.Count > 0)
             {
-                // EXIT with a grace
-                flooding = false;
-            }
-            foreach(Vector3 nbr in nbrs)
-            {
-                if (!flooded.Contains(nbr))
+                foreach (Vector3 nbr in nbrs)
                 {
-                    dry.Add(nbr);
+                    if (!flooded.Contains(nbr) && !dry.Contains(nbr))
+                    {
+                        dry.Add(nbr);
+                    }
                 }
             }
 
-            currentPoint = dry.First();
-            dry.Remove(currentPoint);
+            if (dry.Count == 0)
+            {
+                // EXIT with a grace
+                flooding = false;
+                Debug.Log($"Plane flooded : {flooded.Count}");
+            }
         }
+
+        return flooded;
     }
 
-    private Vector3 SelectAvailablepoint(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
+    private Vector3 SelectAvailablePoint(int[,] grid, int paddingWidthLeft, int paddingWidthRight, int paddingDepthLeft, int paddingDepthRight)
     {
         Debug.Log("Spawning point...");
 
@@ -191,11 +109,12 @@ public class PathFinder : MonoBehaviour
         int positionDepth = (int)(windowDepth * scaleDepth + paddingDepthLeft);
 
         // find a spot for the start point
-        Vector3 positionVector = ScoutAround(positionWidth, positionDepth);
+        Vector3 positionVector = ScoutAround(grid, new Vector3(positionWidth, 0, positionDepth));
         Debug.Log($"point: {positionVector.x}/{positionVector.z}");
 
         return positionVector;
     }
+
     public void CreateSpawnPoints()
     {
         Debug.Log("Spawning points...");
@@ -226,8 +145,8 @@ public class PathFinder : MonoBehaviour
         startPositionDepth = startDepthHalf * halfOfDepth + Random.Range(padding, halfOfDepth - padding);
 
         // find a spot for the start point
-        Vector3 startPositionVector = ScoutAround(startPositionWidth, startPositionDepth);
-        Debug.Log($"start: {startPositionVector.x}/{startPositionVector.z}");
+        //Vector3 startPositionVector = ScoutAround(startPositionWidth, startPositionDepth);
+        //Debug.Log($"start: {startPositionVector.x}/{startPositionVector.z}");
 
         // Repeat for endPoint
         int endWidthHalf = 1 - startWidthHalf;
@@ -236,8 +155,8 @@ public class PathFinder : MonoBehaviour
         endPositionDepth = Random.Range(padding, halfOfDepth - padding) + endDepthHalf * halfOfDepth;
 
         // find a spot for the start point
-        Vector3 endPositionVector = ScoutAround(endPositionWidth, endPositionDepth);
-        Debug.Log($" end: {endPositionVector.x}/{endPositionVector.z}");
+        //Vector3 endPositionVector = ScoutAround(endPositionWidth, endPositionDepth);
+        //Debug.Log($" end: {endPositionVector.x}/{endPositionVector.z}");
 
 
         // Remove old markers
@@ -247,31 +166,29 @@ public class PathFinder : MonoBehaviour
         }
 
         // Place markers
-        Transform start = Instantiate(marker, startPositionVector, Quaternion.identity);
-        start.parent = spawnPoints;
-        start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-        Transform end = Instantiate(marker, endPositionVector, Quaternion.identity);
-        end.parent = spawnPoints;
-        end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
+        //Transform start = Instantiate(marker, startPositionVector, Quaternion.identity);
+        //start.parent = spawnPoints;
+        //start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
+        //Transform end = Instantiate(marker, endPositionVector, Quaternion.identity);
+        //end.parent = spawnPoints;
+        //end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
         // Create start and end nodes
-        startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, end.position);
-        endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
+        //startNode = new Node(new Vector3(start.transform.position.x, 0, start.transform.position.z), null, end.position);
+        //endNode = new Node(new Vector3(end.transform.position.x, 0, end.transform.position.z), null, end.position);
 
-        // LogDump spawn positions
-        Debug.Log($"start: {start.transform.position}");
-        Debug.Log($"end: {end.transform.position}");
+        //// LogDump spawn positions
+        //Debug.Log($"start: {start.transform.position}");
+        //Debug.Log($"end: {end.transform.position}");
     }
 
-    private Vector3 ScoutAround(int width, int depth)
+    private Vector3 ScoutAround(int[,] grid, Vector3 initPoint)
     {
-        int positionWidth = width;
-        int positionDepth = depth;
+        int positionWidth = (int)initPoint.x;
+        int positionDepth = (int)initPoint.z;
         bool searching = true;
-        if (!AccessibleSpot(positionWidth, positionDepth)) // if not accessible
+        if (!AccessibleSpot(grid, new Vector3(positionWidth, 0, positionDepth))) // if not accessible
         {
-            DebugColor(new Vector3(positionWidth, 0, positionDepth), Color.cyan);
-
             int searchRadius = 1;
             bool found = false;
             while (searching)
@@ -298,7 +215,7 @@ public class PathFinder : MonoBehaviour
                     int searchPositionW = positionWidth + coordinateMap[countC];
                     int searchPositionDIndex = (countC + searchRadius); // no looping, simply add the search radius
                     int searchPositionD = positionDepth + coordinateMap[searchPositionDIndex];
-                    if (AccessibleSpot(searchPositionW, searchPositionD))
+                    if (AccessibleSpot(grid, new Vector3(searchPositionW, 0, searchPositionD)))
                     {
                         searching = false;
                         found = true;
@@ -329,8 +246,11 @@ public class PathFinder : MonoBehaviour
             obj.GetComponent<MeshRenderer>().material.color = color;
         }
     }
-    private bool AccessibleSpot(int width, int depth)
+
+    private bool AccessibleSpot(int[,] grid, Vector3 point) // TODO Uses two grids; may be pass a grid collection ??
     {
+        int width = (int)point.x;
+        int depth = (int)point.z;
         // Sanily check
         if (width <= 0 || width >= floor.finalGrid.GetLength(0) || depth <= 0 || depth >= floor.finalGrid.GetLength(1))
         {
