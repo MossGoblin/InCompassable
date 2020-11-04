@@ -43,15 +43,24 @@ public class PathFinder : MonoBehaviour
         }
 
         int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
+        // The grid needs to be reverse
+        for(int cols = 0; cols < floodGrid.GetLength(0); cols ++)
+        {
+            for (int rows = 0; rows < floodGrid.GetLength(1); rows++)
+            {
+                floodGrid[cols, rows] = 1;
+            }
+        }
+
         // Get the list into a grid
         foreach (Vector3 point in floodPlane)
         {
-            floodGrid[(int)point.x, (int)point.z] = 1;
+            floodGrid[(int)point.x, (int)point.z] = 0;
         }
 
         // Select random starting poins
-        Vector3 leftCenter = new Vector3(floodGrid.GetLength(0) / 2, 0, floodGrid.GetLength(1) / 2);
-        Vector3 rightCenter = new Vector3(floodGrid.GetLength(0) / 2 * 3 , 0, floodGrid.GetLength(1) / 2);
+        Vector3 leftCenter = new Vector3(floodGrid.GetLength(0) / 4, 0, floodGrid.GetLength(1) / 2);
+        Vector3 rightCenter = new Vector3(floodGrid.GetLength(0) / 4 * 3 , 0, floodGrid.GetLength(1) / 2);
 
         Vector3 randomLeft = Random.insideUnitSphere.normalized * leftPointDeviation * floodGrid.GetLength(1);
         Vector3 randomRight = Random.insideUnitSphere.normalized * rightPointDeviation * floodGrid.GetLength(1);
@@ -62,10 +71,16 @@ public class PathFinder : MonoBehaviour
 
         // Select a random point for left start
 
-        DebugColor(leftCenter, Color.yellow);
         Debug.Log($"left: {leftCenter}");
-        DebugColor(rightCenter, Color.red);
         Debug.Log($"left: {rightCenter}");
+
+        // Place markers
+        Transform start = Instantiate(marker, leftCenter, Quaternion.identity);
+        start.parent = spawnPoints;
+        start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
+        Transform end = Instantiate(marker, rightCenter, Quaternion.identity);
+        end.parent = spawnPoints;
+        end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
     }
 

@@ -412,8 +412,8 @@ MonoBehaviour:
   pathFinder: {fileID: 682567330}
   basicGrid: 1
   fillInBorders: 1
-  processNeighbours: 0
-  createSplotches: 0
+  processNeighbours: 1
+  createSplotches: 1
   showEmpties: 1
   colorTiles: 0
   initSpawns: 1
