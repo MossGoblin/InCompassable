@@ -10,7 +10,6 @@ public class Floor : MonoBehaviour
 
     public Transform empty;
     public Transform tileHolder;
-    public Transform background;
     public Transform pathFinder;
 
     // Settings
@@ -35,11 +34,8 @@ public class Floor : MonoBehaviour
     public int splotchNum = 3;
     public int splotchSize = 3;
 
-    [Range(0.1f, 0.2f)]
-    public float leftPointDeviation = 0.2f;
-    [Range(0.1f, 0.2f)]
-    public float rightPointDeviation = 0.2f;
-
+    [Range(0.1f, 0.45f)]
+    public float maxPointDeviation = 0.2f;
 
     // Grids
     private Cell[,] gridCells;
@@ -49,7 +45,6 @@ public class Floor : MonoBehaviour
     private int[,] gridNbrs;
     private int[,] gridSplotches;
     public int[,] gridPOI;
-    private Color[,] gridColors;
     public int[,] finalGrid;
     public Transform[,] gridFillObj;
     private Dictionary<Array, bool> grids;
@@ -93,7 +88,7 @@ public class Floor : MonoBehaviour
         else
         {
             // TODO Create Spawns
-            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, leftPointDeviation, rightPointDeviation);
+            pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
         }
     }
 
@@ -125,9 +120,6 @@ public class Floor : MonoBehaviour
         // Init neighbours grid
         gridNbrs = new int[width, depth];
 
-        // Init colors grid
-        gridColors = new Color[floorCellWidth * cellCols, floorCellDepth * cellRows];
-
         // Init final grid
         finalGrid = new int[width, depth];
 
@@ -151,11 +143,6 @@ public class Floor : MonoBehaviour
         {
             for (int countD = 0; countD < floorCellDepth; countD += 1)
             {
-                // Iterate within the cell
-                float colorR = Random.Range(0f, 1f);
-                float colorG = Random.Range(0f, 1f);
-                float colorB = Random.Range(0f, 1f);
-
                 Cell currentCell = gridCells[countW, countD];
                 for (int cellD = 0; cellD < cellRows; cellD += 1)
                 {
@@ -165,7 +152,6 @@ public class Floor : MonoBehaviour
                         int positionY = countD * cellRows + cellD;
                         int positionX = countW * cellCols + cellW;
                         gridBasic[positionX, positionY] = currentCell.Grid()[cellW, cellD];
-                        gridColors[positionX, positionY] = new Color(colorR, colorG, colorB);
                     }
                 }
             }
@@ -308,8 +294,6 @@ public class Floor : MonoBehaviour
                 {
                     gridSplotches[countW, countD] = 1;
                     // DEBUG ONLY
-                    gridColors[countW, countD] = Color.red;
-                    // mark the splotch place as special (to avoid collision with other artifacts)
                     gridPOI[countW, countD] = 1;
                 }
             }
@@ -357,10 +341,6 @@ public class Floor : MonoBehaviour
                     int positionY = countD;
                     gridFillObj[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), Quaternion.identity);
                     gridFillObj[positionX, positionY].parent = tileHolder;
-                    if (colorTiles)
-                    {
-                        gridFillObj[positionX, positionY].GetComponent<MeshRenderer>().material.color = gridColors[positionY, positionX];
-                    }
                 }
             }
         }

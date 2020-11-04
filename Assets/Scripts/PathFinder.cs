@@ -8,12 +8,13 @@ using Random = UnityEngine.Random;
 public class PathFinder : MonoBehaviour
 {
     // Refs
-    public Transform marker;
+    public Transform playerOne;
+    public Transform playerTwo;
 
     public Floor floor;
     public Transform spawnPoints;
 
-    public int minFreeNbrs = 2;
+    public int minFreeNbrs = 3;
     public int padding = 2;
 
     // Init lists
@@ -25,7 +26,7 @@ public class PathFinder : MonoBehaviour
     public Node endNode;
 
 
-    public void CreateSpawns(int[,] grid, float leftPointDeviation, float rightPointDeviation)
+    public void CreateSpawns(int[,] grid, float maxPointDeviation)
     {
         // Select an available point for starting the flood
         Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
@@ -44,7 +45,7 @@ public class PathFinder : MonoBehaviour
 
         int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
         // The grid needs to be reverse
-        for(int cols = 0; cols < floodGrid.GetLength(0); cols ++)
+        for (int cols = 0; cols < floodGrid.GetLength(0); cols++)
         {
             for (int rows = 0; rows < floodGrid.GetLength(1); rows++)
             {
@@ -59,28 +60,42 @@ public class PathFinder : MonoBehaviour
         }
 
         // Select random starting poins
-        Vector3 leftCenter = new Vector3(floodGrid.GetLength(0) / 4, 0, floodGrid.GetLength(1) / 2);
-        Vector3 rightCenter = new Vector3(floodGrid.GetLength(0) / 4 * 3 , 0, floodGrid.GetLength(1) / 2);
+        Vector3 leftSeedPoint = new Vector3(floodGrid.GetLength(0) / 4, 0, floodGrid.GetLength(1) / 2);
+        Vector3 rightSeedpoint = new Vector3(floodGrid.GetLength(0) / 4 * 3, 0, floodGrid.GetLength(1) / 2);
 
-        Vector3 randomLeft = Random.insideUnitSphere.normalized * leftPointDeviation * floodGrid.GetLength(1);
-        Vector3 randomRight = Random.insideUnitSphere.normalized * rightPointDeviation * floodGrid.GetLength(1);
+        Vector3 deviationLeft = Random.insideUnitCircle.normalized;
+        Vector3 deviationRight = Random.insideUnitCircle.normalized;
 
-        leftCenter = ScoutAround(floodGrid, leftCenter + new Vector3(randomLeft.x, 0, randomLeft.z));
-        rightCenter = ScoutAround(floodGrid, rightCenter + new Vector3(randomRight.x, 0, randomRight.z));
+        Vector3 randomLeftNormal = new Vector3(deviationLeft.x, 0, deviationLeft.z);
+        Vector3 randomRightNormal = new Vector3(deviationRight.z, 0, deviationRight.z);
+
+        float randomLeftMagnitude = Random.Range(0, maxPointDeviation * floodGrid.GetLength(1));
+        float randomRightMagnitude = Random.Range(0, maxPointDeviation * floodGrid.GetLength(1));
+
+        Vector3 randomLeft = randomLeftNormal * randomLeftMagnitude;
+        Vector3 randomRight = randomRightNormal * randomRightMagnitude;
+
+        leftSeedPoint = ScoutAround(floodGrid, leftSeedPoint + new Vector3(randomLeft.x, 0, randomLeft.z));
+        rightSeedpoint = ScoutAround(floodGrid, rightSeedpoint + new Vector3(randomRight.x, 0, randomRight.z));
 
 
         // Select a random point for left start
 
-        Debug.Log($"left: {leftCenter}");
-        Debug.Log($"left: {rightCenter}");
+        Debug.Log($"left: {leftSeedPoint}");
+        Debug.Log($"left: {rightSeedpoint}");
 
         // Place markers
-        Transform start = Instantiate(marker, leftCenter, Quaternion.identity);
-        start.parent = spawnPoints;
-        start.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-        Transform end = Instantiate(marker, rightCenter, Quaternion.identity);
-        end.parent = spawnPoints;
-        end.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
+        // Transform start = Instantiate(playerOne, leftSeedPoint, Quaternion.identity);
+        playerOne.transform.position = leftSeedPoint;
+        playerOne.gameObject.SetActive(true);
+        //start.parent = spawnPoints;
+        playerOne.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
+
+        // Transform end = Instantiate(playerTwo, rightSeedpoint, Quaternion.identity);
+        playerTwo.transform.position = rightSeedpoint;
+        playerTwo.gameObject.SetActive(true);
+        //end.parent = spawnPoints;
+        playerTwo.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
     }
 
@@ -102,7 +117,7 @@ public class PathFinder : MonoBehaviour
             dry.Remove(currentPoint);
             flooded.Add(currentPoint);
 
-            DebugColor(currentPoint, Color.cyan);
+            // DebugColor(currentPoint, Color.cyan);
 
 
 
@@ -172,7 +187,7 @@ public class PathFinder : MonoBehaviour
                         break;
                     }
                     Debug.Log($"{searchPositionW},{searchPositionD}");
-                    DebugColor(new Vector3(searchPositionW, 0, searchPositionD), Color.cyan);
+                    // DebugColor(new Vector3(searchPositionW, 0, searchPositionD), Color.cyan);
 
                 }
 
@@ -289,6 +304,7 @@ public class Node
             gScore = parent.gScore + 1;
         }
     }
+
     public float GetDistance(Vector3 origin, Vector3 target)
     {
         // Simlified version
@@ -299,9 +315,6 @@ public class Node
         int larger = (int)Mathf.Max(distX, distZ);
 
         float score = (float)(smaller * 1.4 + (larger - smaller));
-        // Euclidian version
-        //Vector3 dist = origin - target;
-        //float score = Mathf.Sqrt((dist.x * dist.x) + (dist.z * dist.z));
 
         return score;
     }

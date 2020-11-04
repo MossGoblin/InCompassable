@@ -183,7 +183,7 @@ MonoBehaviour:
   marker: {fileID: 3238838965761194607, guid: c7fc8258f05916b419f1c871f6be6f0e, type: 3}
   floor: {fileID: 1619756425}
   spawnPoints: {fileID: 245760760}
-  minFreeNbrs: 2
+  minFreeNbrs: 3
   padding: 4
 --- !u!4 &682567330
 Transform:
@@ -422,12 +422,11 @@ MonoBehaviour:
   floorCellDepth: 8
   cellCols: 16
   cellRows: 8
-  cellMin: 10
-  cellMax: 15
+  cellMin: 15
+  cellMax: 20
   splotchNum: 5
   splotchSize: 8
-  leftPointDeviation: 0.1498
-  rightPointDeviation: 0.1507
+  maxPointDeviation: 0.353
 --- !u!4 &1619756426
 Transform:
   m_ObjectHideFlags: 0

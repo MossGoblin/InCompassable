@@ -43,7 +43,7 @@ public class PlayerMover : MonoBehaviour
         Vector3 move = transform.forward * verMove;
         controller.Move(moveSpeed * Time.deltaTime * move);
 
-        transform.Rotate(0, horMove, 0);
+        transform.Rotate(0, horMove * turnSpeed, 0);
         // camera rotation
         //cameraHolderTransform.Rotate(0, -horMove, 0);
     }
