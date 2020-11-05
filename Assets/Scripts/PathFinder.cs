@@ -89,13 +89,11 @@ public class PathFinder : MonoBehaviour
         playerOne.transform.position = leftSeedPoint;
         playerOne.gameObject.SetActive(true);
         //start.parent = spawnPoints;
-        playerOne.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
 
         // Transform end = Instantiate(playerTwo, rightSeedpoint, Quaternion.identity);
         playerTwo.transform.position = rightSeedpoint;
         playerTwo.gameObject.SetActive(true);
         //end.parent = spawnPoints;
-        playerTwo.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.green;
 
     }
 
@@ -116,10 +114,6 @@ public class PathFinder : MonoBehaviour
             currentPoint = dry.First();
             dry.Remove(currentPoint);
             flooded.Add(currentPoint);
-
-            // DebugColor(currentPoint, Color.cyan);
-
-
 
             // get all nbrs of the current point and add the to the dry list if not already flooded
             List<Vector3> nbrs = floor.GetNbrs(currentPoint);
@@ -187,8 +181,6 @@ public class PathFinder : MonoBehaviour
                         break;
                     }
                     Debug.Log($"{searchPositionW},{searchPositionD}");
-                    // DebugColor(new Vector3(searchPositionW, 0, searchPositionD), Color.cyan);
-
                 }
 
                 if (!found)

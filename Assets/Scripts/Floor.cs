@@ -19,7 +19,6 @@ public class Floor : MonoBehaviour
     public bool processNeighbours;
     public bool createSplotches;
     public bool showEmpties;
-    public bool colorTiles;
     public bool initSpawns;
     public bool findPath;
 
@@ -132,7 +131,25 @@ public class Floor : MonoBehaviour
         CreateSplotches();
         CombineGrids();
         MaterializeFloor();
+        ColorFloorgradient(Color.blue, Color.green);
         pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
+    }
+
+    private void ColorFloorgradient(Color startColor, Color endColor)
+    {
+        foreach(Transform obj in gridFillObj)
+        {
+            Transform child = obj.GetChild(0);
+            if (child.name == "Cube")
+            {
+                continue;
+            }
+
+            float positionIndex = obj.position.x + obj.position.z;
+            float positionPercent = positionIndex / (gridFillObj.GetLength(0) + gridFillObj.GetLength(1));
+            Color currentColor = Color.Lerp(startColor, endColor, positionPercent);
+            child.GetComponent<MeshRenderer>().material.SetColor("_Color", currentColor);
+        }
     }
 
     private void InitGrids()
