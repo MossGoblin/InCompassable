@@ -107,23 +107,6 @@ public class Floor : MonoBehaviour
 
     private void ResetGrids()
     {
-        //if (!findPath)
-        //{
-        //    InitGrids();
-        //    CreateBasicGrid();
-        //    CreateBordersGrid();
-        //    CreateNbrsGrid();
-        //    CreateSplotches();
-        //    CombineGrids();
-        //    MaterializeFloor();
-        //}
-
-        //else
-        //{
-        //    // TODO Create Spawns
-        //    pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
-        //}
-
         InitGrids();
         CreateBasicGrid();
         CreateBordersGrid();
@@ -131,11 +114,11 @@ public class Floor : MonoBehaviour
         CreateSplotches();
         CombineGrids();
         MaterializeFloor();
-        ColorFloorgradient(Color.blue, Color.green);
+        ColorFloorGradient(Color.blue, Color.green);
         pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
     }
 
-    private void ColorFloorgradient(Color startColor, Color endColor)
+    private void ColorFloorGradient(Color startColor, Color endColor)
     {
         foreach(Transform obj in gridFillObj)
         {

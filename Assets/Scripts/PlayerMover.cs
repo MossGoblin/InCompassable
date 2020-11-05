@@ -4,21 +4,12 @@ public class PlayerMover : MonoBehaviour
 {
     public CharacterController controller;
     public Transform cameraHolderTransform;
-    public float currentRotation;
     public float initRotation = 0f;
-    private Vector3 initPlayerRotation;
-    public float rotationSpeed;
 
     public bool rightPlayer;
     public float moveSpeed = 6f;
     public float turnSpeed = 8;
 
-    // code injection
-
-    public float speed = 6.0f;
-    public float jumpSpeed = 8.0f;
-    private Vector3 moveDirection = Vector3.zero;
-    
     private void Start()
     {
     }
@@ -26,8 +17,6 @@ public class PlayerMover : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
-        currentRotation = initRotation;
-        initPlayerRotation = transform.rotation.eulerAngles;
         HandleMovement();
     }
 
