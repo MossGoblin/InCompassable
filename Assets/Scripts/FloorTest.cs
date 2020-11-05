@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Floor : MonoBehaviour
+public class FloorTest : MonoBehaviour
 {
     // Refs
     public Transform obstacle;
@@ -51,18 +51,11 @@ public class Floor : MonoBehaviour
 
     // Overall dimentions
     public int width { get; private set; }
+
     public int depth { get; private set; }
-
-    // Floor visibility
-    public float visibilityDistance;
-    public Transform playerOne;
-    public Transform playerTwo;
-
 
     private void Start()
     {
-        playerOne = GameObject.Find("PlayerOne").transform;
-        playerTwo = GameObject.Find("PlayerTwo").transform;
         ResetGrids();
     }
 
@@ -77,54 +70,10 @@ public class Floor : MonoBehaviour
     private void Update()
     {
         HandleInput();
-        HandleFloorTiles();
-    }
-
-    private void HandleFloorTiles()
-    {
-        if (gridFillObj == null)
-        {
-            return;
-        }
-        foreach (Transform obj in gridFillObj)
-        {
-            if (playerOne != null && playerTwo != null)
-            {
-                float distanceToOne = CheckDistance(obj, playerOne);
-                float distanceToTwo = CheckDistance(obj, playerTwo);
-
-                if (distanceToOne <= visibilityDistance || distanceToTwo <= visibilityDistance)
-                {
-                    obj.transform.gameObject.SetActive(true);
-                }
-                else
-                {
-                    obj.transform.gameObject.SetActive(false);
-                }
-            }
-
-        }
     }
 
     private void ResetGrids()
     {
-        //if (!findPath)
-        //{
-        //    InitGrids();
-        //    CreateBasicGrid();
-        //    CreateBordersGrid();
-        //    CreateNbrsGrid();
-        //    CreateSplotches();
-        //    CombineGrids();
-        //    MaterializeFloor();
-        //}
-
-        //else
-        //{
-        //    // TODO Create Spawns
-        //    pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
-        //}
-
         InitGrids();
         CreateBasicGrid();
         CreateBordersGrid();
@@ -132,7 +81,11 @@ public class Floor : MonoBehaviour
         CreateSplotches();
         CombineGrids();
         MaterializeFloor();
-        pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
+        if (findPath)
+        {
+            // TODO Create Spawns
+            pathFinder.GetComponent<PathFinderTest>().CreateSpawns(finalGrid, maxPointDeviation);
+        }
     }
 
     private void InitGrids()
@@ -424,22 +377,5 @@ public class Floor : MonoBehaviour
         }
 
         return counter;
-    }
-
-    private float CheckDistance(Transform objectOne, Transform objectTwo)
-    {
-        float distance;
-
-        float sqrtTwo = Mathf.Sqrt(2f);
-
-        float distX = Mathf.Abs(objectTwo.position.x - objectOne.position.x);
-        float distZ = Mathf.Abs(objectTwo.position.z - objectOne.position.z);
-
-        float smaller = Mathf.Min(distX, distZ);
-        float larger = Mathf.Max(distX, distZ);
-
-        distance = smaller * sqrtTwo + (larger - smaller);
-
-        return distance;
     }
 }

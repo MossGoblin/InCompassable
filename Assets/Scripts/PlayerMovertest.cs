@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class PlayerMover : MonoBehaviour
+public class PlayerMovertest : MonoBehaviour
 {
     public CharacterController controller;
     public Transform cameraHolderTransform;
@@ -18,7 +18,7 @@ public class PlayerMover : MonoBehaviour
     public float speed = 6.0f;
     public float jumpSpeed = 8.0f;
     private Vector3 moveDirection = Vector3.zero;
-    
+
     private void Start()
     {
     }
@@ -51,5 +51,8 @@ public class PlayerMover : MonoBehaviour
 
         transform.Rotate(0, horMove * turnSpeed, 0);
 
+        //moveDirection = new Vector3(horMove, 0.0f, verMove);
+        //moveDirection *= speed;
+        //controller.Move(moveDirection * Time.deltaTime);
     }
 }
