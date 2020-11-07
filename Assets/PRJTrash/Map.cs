@@ -12,10 +12,21 @@ public class Map : MonoBehaviour
     public Transform player;
     public Camera main;
 
+    public RectTransform background;
+    public RectTransform rockIconPF;
+
+    // parameters
+    [Range(0f, 180f)]
+    public float angle = 165f;
+    [Range(0f, 200f)]
+    public float radius = 120f;
+
     // collections
     int[,] grid;
     Transform[,] terrain;
     int[,] pingMap;
+    Dictionary<Vector3, RectTransform> iconMap;
+    RectTransform testIcon;
 
     void Start()
     {
@@ -31,11 +42,45 @@ public class Map : MonoBehaviour
             {1,0,0,0,0,0,0,1,1,1},
             {1,2,1,1,1,1,1,1,1,1}
         };
+        iconMap = new Dictionary<Vector3, RectTransform>();
         terrain = new Transform[grid.GetLength(0), grid.GetLength(1)];
         pingMap = new int[grid.GetLength(0), grid.GetLength(1)];
         CreateMap();
         CenterPlayer();
         CenterMainCamera();
+        CreateRockIcon();
+    }
+
+    void Update()
+    {
+        Vector3 newPosition = GetPosition(testIcon, angle, radius);
+        testIcon.position = newPosition;
+    }
+    private void CreateRockIcon()
+    {
+        // create the object
+        var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
+        Vector3 localPosition = GetPosition(newIcon, angle, radius);
+        newIcon.position = localPosition;
+        iconMap.Add(localPosition, newIcon);
+        testIcon = newIcon;
+    }
+
+    private Vector3 GetPosition(RectTransform icon, float angle, float radius)
+    {
+        Vector3 position;
+        float posX = Mathf.Cos(angle);
+        float posY = Mathf.Sin(angle);
+        Vector3 relativePosition = new Vector3(posX, posY, 0) * radius;
+        Vector3 parentPosition = icon.parent.position;
+        position = relativePosition + parentPosition;
+        // Debug.Log($"angle: {angle}");
+        // Debug.Log($"posX: {posX}");
+        // Debug.Log($"posY: {posY}");
+        Debug.Log($"parent: {parentPosition}");
+        Debug.Log($"rel position: {relativePosition}");
+        Debug.Log($"position: {position}");
+        return position;
     }
 
     private void CenterMainCamera()
@@ -79,9 +124,5 @@ public class Map : MonoBehaviour
                 terrain[countR, countC] = newObj;
             }
         }
-    }
-
-    void Update()
-    {
     }
 }
