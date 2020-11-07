@@ -750,8 +750,7 @@ MonoBehaviour:
   background: {fileID: 566266891}
   rockIconPF: {fileID: 4722089574763117737, guid: cc9ab33bf4df0a745bc9c0bd5d1211e1,
     type: 3}
-  angle: 165
-  radius: 120
+  radius: 115
 --- !u!4 &1744404790
 Transform:
   m_ObjectHideFlags: 0
@@ -1049,7 +1048,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &2124818397
 RectTransform:
   m_ObjectHideFlags: 0

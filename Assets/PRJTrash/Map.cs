@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Map : MonoBehaviour
@@ -16,15 +17,14 @@ public class Map : MonoBehaviour
     public RectTransform rockIconPF;
 
     // parameters
-    [Range(0f, 180f)]
-    public float angle = 165f;
-    [Range(0f, 200f)]
-    public float radius = 120f;
+    // [Range(0f, 180f)]
+    // public float angle = 165f;
+    public float radius = 115f;
 
     // collections
     int[,] grid;
     Transform[,] terrain;
-    int[,] pingMap;
+    List<Vector3> pingMap;
     Dictionary<Vector3, RectTransform> iconMap;
     RectTransform testIcon;
 
@@ -44,7 +44,7 @@ public class Map : MonoBehaviour
         };
         iconMap = new Dictionary<Vector3, RectTransform>();
         terrain = new Transform[grid.GetLength(0), grid.GetLength(1)];
-        pingMap = new int[grid.GetLength(0), grid.GetLength(1)];
+        pingMap = new List<Vector3>();
         CreateMap();
         CenterPlayer();
         CenterMainCamera();
@@ -53,16 +53,49 @@ public class Map : MonoBehaviour
 
     void Update()
     {
+        float angle = GetAngle();
+        // spawn an icon
         Vector3 newPosition = GetPosition(testIcon, angle, radius);
         testIcon.position = newPosition;
+
     }
+
+    private float GetAngle()
+    {
+        // Find the marked object on te map
+        Vector3 mapObject = pingMap.FirstOrDefault();
+        Vector3 mapObjectCompensated = mapObject + new Vector3(0.5f, 0, 0.5f);
+        // get the position of the player
+        Vector3 playerPosition = player.position;
+        // get the direction to the object
+        Vector3 directionToObject = (mapObjectCompensated - playerPosition).normalized;
+        
+        // clean positions of Y to get clean angle
+        Vector3 direction = new Vector3(directionToObject.x, 0, directionToObject.z);
+        Vector3 playerPoint = new Vector3(player.forward.x, 0, player.forward.z);
+        
+        // get the angle between the player rotation and the direction to the object
+        float angleToObject = Vector3.Angle(playerPoint, direction);
+        // float angleToObjectCallibrated = (angleToObject + 270) % 180;
+
+        Debug.Log($"mapObject: {mapObject}");
+        Debug.Log($"playerPosition: {playerPosition}");
+        Debug.Log($"playerRotation: {player.forward}");
+        Debug.Log($"dir: {directionToObject}");
+        Debug.Log($"angle: {angleToObject}");
+        // Debug.Log($"angle cal: {angleToObjectCallibrated}");
+
+        return angleToObject;
+    }
+
     private void CreateRockIcon()
     {
+        float angle = GetAngle();
         // create the object
         var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
-        Vector3 localPosition = GetPosition(newIcon, angle, radius);
-        newIcon.position = localPosition;
-        iconMap.Add(localPosition, newIcon);
+        Vector3 position = GetPosition(newIcon, angle, radius);
+        newIcon.position = position;
+        iconMap.Add(position, newIcon);
         testIcon = newIcon;
     }
 
@@ -77,9 +110,9 @@ public class Map : MonoBehaviour
         // Debug.Log($"angle: {angle}");
         // Debug.Log($"posX: {posX}");
         // Debug.Log($"posY: {posY}");
-        Debug.Log($"parent: {parentPosition}");
-        Debug.Log($"rel position: {relativePosition}");
-        Debug.Log($"position: {position}");
+        // Debug.Log($"parent: {parentPosition}");
+        // Debug.Log($"rel position: {relativePosition}");
+        // Debug.Log($"position: {position}");
         return position;
     }
 
@@ -117,7 +150,7 @@ public class Map : MonoBehaviour
                 {
                     newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.blue;
                     newObj.GetChild(0).gameObject.layer = 8;
-                    pingMap[countR, countC] = 1;
+                    pingMap.Add(new Vector3(countC, 0, countR));
                 }
 
                 newObj.parent = transform;
