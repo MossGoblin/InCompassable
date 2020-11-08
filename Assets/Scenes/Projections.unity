@@ -750,6 +750,8 @@ MonoBehaviour:
   background: {fileID: 566266891}
   rockIconPF: {fileID: 4722089574763117737, guid: cc9ab33bf4df0a745bc9c0bd5d1211e1,
     type: 3}
+  rockIconGreenPF: {fileID: 4722089574763117737, guid: 0388b1a4d25f61644aa52dfe837c7e20,
+    type: 3}
   radius: 108
 --- !u!4 &1744404790
 Transform:

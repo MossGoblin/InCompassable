@@ -16,32 +16,44 @@ public class Map : MonoBehaviour
 
     public RectTransform background;
     public RectTransform rockIconPF;
+    public RectTransform rockIconGreenPF;
 
     public float radius = 108f;
 
     // collections
     int[,] grid;
     Transform[,] terrain;
-    List<Vector3> pingList;
-    Dictionary<Vector3, RectTransform> iconMap;
+    List<POI> pingList;
+    Dictionary<POI, RectTransform> iconMap;
 
     void Start()
     {
         grid = new int[,] {
-            {1,2,1,1,1,1,1,1,1,2},
+            {1,2,1,3,1,1,1,1,1,2},
             {1,0,0,0,0,0,0,0,1,1},
-            {1,1,1,0,0,0,0,1,1,1},
+            {1,1,1,0,0,0,0,1,3,1},
             {1,0,1,0,0,0,0,0,0,1},
             {1,1,1,2,0,0,0,0,0,2},
             {1,0,0,0,0,0,0,0,0,1},
-            {1,0,2,0,0,0,0,0,0,1},
+            {1,0,2,0,0,0,0,3,0,1},
             {1,0,1,0,0,0,0,0,0,1},
+            {1,0,0,0,0,0,0,1,1,1},
+            {1,0,03,0,0,0,0,1,1,1},
             {1,0,0,0,0,0,0,1,1,1},
             {1,2,1,1,1,1,1,2,1,1}
         };
-        iconMap = new Dictionary<Vector3, RectTransform>();
+        // grid = new int[,] {
+        //     {1,2,1,3,1,1,1,1,2},
+        //     {1,0,0,0,0,0,0,1,1},
+        //     {1,1,1,0,0,0,1,1,1},
+        //     {1,0,2,0,0,0,3,0,1},
+        //     {1,0,1,0,0,0,0,0,1},
+        //     {1,0,0,0,0,0,1,1,1},
+        //     {1,2,1,1,1,1,2,1,1}
+        // };
+        iconMap = new Dictionary<POI, RectTransform>();
         terrain = new Transform[grid.GetLength(0), grid.GetLength(1)];
-        pingList = new List<Vector3>();
+        pingList = new List<POI>();
         CreateMap();
         CenterPlayer();
         CenterMainCamera();
@@ -79,10 +91,10 @@ public class Map : MonoBehaviour
 
     private void UpdateRockIcons()
     {
-        foreach (Vector3 ping in pingList)
+        foreach (POI ping in pingList)
         {
             RectTransform icon = iconMap.FirstOrDefault(i => i.Key == ping).Value;
-            float angle = GetAngle(ping, player);
+            float angle = GetAngle(ping.position, player);
             Vector3 position = GetPosition(icon, angle, radius);
             icon.localPosition = position;
             iconMap[ping] = icon;
@@ -92,25 +104,30 @@ public class Map : MonoBehaviour
 
     private void CreateRockIcons()
     {
+        int counter = 0;
         // Iterate pingmap
-        foreach (Vector3 ping in pingList)
+        foreach (POI ping in pingList)
         {
-            float angle = GetAngle(ping, player);
-            var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
-            Vector3 position = GetPosition(newIcon, angle, radius);
+            // check type of ping
+            float angle = GetAngle(ping.position, player);
+            var newIcon = Instantiate(ping.prefab, new Vector3(0, 0, 0), Quaternion.identity, background);
+            Vector3 position = GetPosition(background, angle, radius);
             newIcon.localPosition = position;
             iconMap.Add(ping, newIcon);
+            Debug.Log(ping.position);
+            // DBG
+            counter ++;
         }
     }
 
-    private Vector3 GetPosition(RectTransform icon, float angle, float radius)
+    private Vector3 GetPosition(RectTransform parent, float angle, float radius)
     {
         float angleInRadians = angle * Mathf.Deg2Rad;
         float posX = Mathf.Sin(angleInRadians);
         float posY = Mathf.Cos(angleInRadians);
         Vector3 relativeDirection = new Vector3(posX, posY, 0);
         Vector3 relativePosition = new Vector3(posX, posY, 0) * radius;
-        Vector3 parentPosition = icon.parent.position;
+        Vector3 parentPosition = parent.position;
         Vector3 iconPosition = relativePosition + parentPosition;
 
         // Debug.Log($"angle: {angle}");
@@ -148,12 +165,13 @@ public class Map : MonoBehaviour
 
     private void CreateMap()
     {
-        for (int countR = 0; countR < grid.GetLength(0); countR++)
+        // Itreate grid
+        for (int countC = 0; countC < grid.GetLength(0); countC++)
         {
-            for (int countC = 0; countC < grid.GetLength(1); countC++)
+            for (int countR = 0; countR < grid.GetLength(1); countR++)
             {
                 Transform prefab;
-                if (grid[countR, countC] == 1 || grid[countR, countC] == 2)
+                if (grid[countC, countR] > 0)
                 {
                     prefab = pfBlock;
                 }
@@ -162,16 +180,26 @@ public class Map : MonoBehaviour
                     prefab = pfFloor;
                 }
 
+                // Create object
                 Transform newObj = Instantiate(prefab, new Vector3(countC, 0, countR), Quaternion.identity);
-                if (grid[countR, countC] == 2)
+
+                if (grid[countC, countR] == 2)
                 {
                     newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.blue;
+                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconPF);
+                    pingList.Add(newPoi);
                     newObj.GetChild(0).gameObject.layer = 8;
-                    pingList.Add(new Vector3(countC, 0, countR));
+                }
+                else if (grid[countC, countR] == 3)
+                {
+                    newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
+                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconGreenPF);
+                    pingList.Add(newPoi);
+                    newObj.GetChild(0).gameObject.layer = 8;
                 }
 
                 newObj.parent = transform;
-                terrain[countR, countC] = newObj;
+                terrain[countC, countR] = newObj;
             }
         }
     }
