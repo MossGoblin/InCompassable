@@ -22,56 +22,50 @@ public class Map : MonoBehaviour
     // collections
     int[,] grid;
     Transform[,] terrain;
-    List<Vector3> pingMap;
+    List<Vector3> pingList;
     Dictionary<Vector3, RectTransform> iconMap;
-    RectTransform testIcon;
 
     void Start()
     {
         grid = new int[,] {
-            {1,2,1,1,1,1,1,1,1,1},
+            {1,2,1,1,1,1,1,1,1,2},
             {1,0,0,0,0,0,0,0,1,1},
             {1,1,1,0,0,0,0,1,1,1},
             {1,0,1,0,0,0,0,0,0,1},
-            {1,1,1,1,0,0,0,0,0,2},
+            {1,1,1,2,0,0,0,0,0,2},
             {1,0,0,0,0,0,0,0,0,1},
             {1,0,2,0,0,0,0,0,0,1},
             {1,0,1,0,0,0,0,0,0,1},
             {1,0,0,0,0,0,0,1,1,1},
-            {1,2,1,1,1,1,1,1,1,1}
+            {1,2,1,1,1,1,1,2,1,1}
         };
         iconMap = new Dictionary<Vector3, RectTransform>();
         terrain = new Transform[grid.GetLength(0), grid.GetLength(1)];
-        pingMap = new List<Vector3>();
+        pingList = new List<Vector3>();
         CreateMap();
-        CenterPlayer(1.5f, 8.5f);
+        CenterPlayer();
         CenterMainCamera();
         CreateRockIcons();
     }
 
     void Update()
     {
-        float angle = GetAngle();
-        // spawn an icon
-        Vector3 newPosition = GetPosition(testIcon, angle, radius);
-        testIcon.localPosition = newPosition;
-
+        UpdateRockIcons();
     }
 
-    private float GetAngle()
+    private float GetAngle(Vector3 ping, Transform player)
     {
         // Find the marked object on te map
-        Vector3 mapObject = pingMap.FirstOrDefault();
+        Vector3 mapObject = ping;
         Vector3 mapObjectCompensated = mapObject + new Vector3(0.5f, 0, 0.5f);
+
         // get the position of the player
         Vector3 playerPosition = player.position;
+
         // get the direction to the object
         Vector3 directionToObject = (mapObjectCompensated - playerPosition);
-        float playerRotationY = player.rotation.eulerAngles.y;
-        Vector3 playerRotation = new Vector3(0, playerRotationY, 0);
 
         // get the angle between the player rotation and the direction to the object
-
         float angleToObject = -Vector3.SignedAngle(directionToObject, player.forward, Vector3.up);
 
         // Debug.Log($"mapObject: {mapObjectCompensated}");
@@ -83,20 +77,30 @@ public class Map : MonoBehaviour
         return angleToObject;
     }
 
+    private void UpdateRockIcons()
+    {
+        foreach (Vector3 ping in pingList)
+        {
+            RectTransform icon = iconMap.FirstOrDefault(i => i.Key == ping).Value;
+            float angle = GetAngle(ping, player);
+            Vector3 position = GetPosition(icon, angle, radius);
+            icon.localPosition = position;
+            iconMap[ping] = icon;
+        }
+    }
+
+
     private void CreateRockIcons()
     {
-
-        
-        float angle = GetAngle();
-        // create the object
-        var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
-
-
-        Vector3 position = GetPosition(newIcon, angle, radius);
-        newIcon.localPosition = position;
-        iconMap.Add(position, newIcon);
-        testIcon = newIcon;
-
+        // Iterate pingmap
+        foreach (Vector3 ping in pingList)
+        {
+            float angle = GetAngle(ping, player);
+            var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
+            Vector3 position = GetPosition(newIcon, angle, radius);
+            newIcon.localPosition = position;
+            iconMap.Add(ping, newIcon);
+        }
     }
 
     private Vector3 GetPosition(RectTransform icon, float angle, float radius)
@@ -122,7 +126,6 @@ public class Map : MonoBehaviour
         // Debug.Log($"parent: {parentPosition}");
         // Debug.Log($"position: {iconPosition}");
 
-        // return position;
         return relativePosition;
     }
 
@@ -130,7 +133,6 @@ public class Map : MonoBehaviour
     {
         Vector3 mapCenter = new Vector3(grid.GetLength(0) / 2, 13, grid.GetLength(1) / 2);
         main.transform.position = mapCenter;
-
     }
 
     private void CenterPlayer()
@@ -165,7 +167,7 @@ public class Map : MonoBehaviour
                 {
                     newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.blue;
                     newObj.GetChild(0).gameObject.layer = 8;
-                    pingMap.Add(new Vector3(countC, 0, countR));
+                    pingList.Add(new Vector3(countC, 0, countR));
                 }
 
                 newObj.parent = transform;
