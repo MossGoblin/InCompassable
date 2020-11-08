@@ -223,7 +223,7 @@ CharacterController:
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0.38, z: 0}
 --- !u!114 &463347586
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647,7 +647,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1033913426}
   m_LocalRotation: {x: 0.44541666, y: 0, z: 0, w: 0.89532346}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.3, z: 0}
   m_LocalScale: {x: 0.3, y: 0.3, z: 0.3}
   m_Children: []
   m_Father: {fileID: 463347587}
@@ -750,7 +750,7 @@ MonoBehaviour:
   background: {fileID: 566266891}
   rockIconPF: {fileID: 4722089574763117737, guid: cc9ab33bf4df0a745bc9c0bd5d1211e1,
     type: 3}
-  radius: 115
+  radius: 108
 --- !u!4 &1744404790
 Transform:
   m_ObjectHideFlags: 0

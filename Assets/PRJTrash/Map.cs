@@ -7,6 +7,7 @@ using UnityEngine;
 public class Map : MonoBehaviour
 {
 
+
     // prefabs
     public Transform pfBlock;
     public Transform pfFloor;
@@ -16,10 +17,7 @@ public class Map : MonoBehaviour
     public RectTransform background;
     public RectTransform rockIconPF;
 
-    // parameters
-    // [Range(0f, 180f)]
-    // public float angle = 165f;
-    public float radius = 115f;
+    public float radius = 108f;
 
     // collections
     int[,] grid;
@@ -31,13 +29,13 @@ public class Map : MonoBehaviour
     void Start()
     {
         grid = new int[,] {
-            {1,1,1,1,1,1,1,1,1,1},
+            {1,2,1,1,1,1,1,1,1,1},
             {1,0,0,0,0,0,0,0,1,1},
             {1,1,1,0,0,0,0,1,1,1},
             {1,0,1,0,0,0,0,0,0,1},
-            {1,1,1,1,0,0,0,0,0,1},
+            {1,1,1,1,0,0,0,0,0,2},
             {1,0,0,0,0,0,0,0,0,1},
-            {1,0,1,0,0,0,0,0,0,1},
+            {1,0,2,0,0,0,0,0,0,1},
             {1,0,1,0,0,0,0,0,0,1},
             {1,0,0,0,0,0,0,1,1,1},
             {1,2,1,1,1,1,1,1,1,1}
@@ -46,9 +44,9 @@ public class Map : MonoBehaviour
         terrain = new Transform[grid.GetLength(0), grid.GetLength(1)];
         pingMap = new List<Vector3>();
         CreateMap();
-        CenterPlayer();
+        CenterPlayer(1.5f, 8.5f);
         CenterMainCamera();
-        CreateRockIcon();
+        CreateRockIcons();
     }
 
     void Update()
@@ -68,16 +66,13 @@ public class Map : MonoBehaviour
         // get the position of the player
         Vector3 playerPosition = player.position;
         // get the direction to the object
-        Vector3 directionToObject = (playerPosition - mapObjectCompensated);
+        Vector3 directionToObject = (mapObjectCompensated - playerPosition);
         float playerRotationY = player.rotation.eulerAngles.y;
         Vector3 playerRotation = new Vector3(0, playerRotationY, 0);
 
         // get the angle between the player rotation and the direction to the object
-        float angleToObject = 180 - 360 - Vector3.SignedAngle(directionToObject, player.forward, Vector3.up);
-        if (angleToObject <= -180)
-        {
-            angleToObject = angleToObject + 360;
-        }
+
+        float angleToObject = -Vector3.SignedAngle(directionToObject, player.forward, Vector3.up);
 
         // Debug.Log($"mapObject: {mapObjectCompensated}");
         // Debug.Log($"playerPosition: {playerPosition}");
@@ -88,31 +83,20 @@ public class Map : MonoBehaviour
         return angleToObject;
     }
 
-    private Vector3 GetPosition(RectTransform icon, Vector3 directionToObject, float radius)
+    private void CreateRockIcons()
     {
-        Vector3 parentPosition = icon.parent.position;
-        Vector3 relativePosition = new Vector3(directionToObject.x, directionToObject.z, 0) * radius;
-        Vector3 iconPosition = relativePosition + parentPosition;
 
-        // Debug.Log($"parent: {parentPosition}");
-        // Debug.Log($"direction: {directionToObject}");
-        // Debug.Log($"rel position: {relativePosition}");
-        // Debug.Log($"position: {iconPosition}");
-
-        return relativePosition;
-
-    }
-
-
-    private void CreateRockIcon()
-    {
+        
         float angle = GetAngle();
         // create the object
         var newIcon = Instantiate(rockIconPF, new Vector3(0, 0, 0), Quaternion.identity, background);
+
+
         Vector3 position = GetPosition(newIcon, angle, radius);
         newIcon.localPosition = position;
         iconMap.Add(position, newIcon);
         testIcon = newIcon;
+
     }
 
     private Vector3 GetPosition(RectTransform icon, float angle, float radius)
@@ -125,14 +109,15 @@ public class Map : MonoBehaviour
         Vector3 parentPosition = icon.parent.position;
         Vector3 iconPosition = relativePosition + parentPosition;
 
-        Debug.Log($"angle: {angle}");
-        Debug.Log($"angle rad: {angleInRadians}");
-        Debug.Log($"posX: {posX}");
-        Debug.Log($"posY: {posY}");
-        Debug.Log($"rel direction: {relativeDirection}");
-        Debug.Log($"rel dir X: {relativeDirection.x}");
-        Debug.Log($"rel dir Y: {relativeDirection.y}");
-        Debug.Log($"rel dir Z: {relativeDirection.z}");
+        // Debug.Log($"angle: {angle}");
+        // Debug.Log($"angle rad: {angleInRadians}");
+        // Debug.Log($"posX: {posX}");
+        // Debug.Log($"posY: {posY}");
+        // Debug.Log($"rel direction: {relativeDirection}");
+        // Debug.Log($"rel dir X: {relativeDirection.x}");
+        // Debug.Log($"rel dir Y: {relativeDirection.y}");
+        // Debug.Log($"rel dir Z: {relativeDirection.z}");
+
         // Debug.Log($"rel position: {relativePosition}");
         // Debug.Log($"parent: {parentPosition}");
         // Debug.Log($"position: {iconPosition}");
@@ -150,8 +135,12 @@ public class Map : MonoBehaviour
 
     private void CenterPlayer()
     {
-        // Vector3 mapCenter = new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2);
-        Vector3 mapCenter = new Vector3(1.5f, 0, 8.5f);
+        Vector3 mapCenter = new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2);
+        player.position = mapCenter;
+    }
+    private void CenterPlayer(float posX, float posZ)
+    {
+        Vector3 mapCenter = new Vector3(posX, 0, posZ);
         player.position = mapCenter;
     }
 
