@@ -1,26 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using UnityEngine;
+
 using Random = UnityEngine.Random;
 
 public class Floor : MonoBehaviour
 {
     // Refs
     public Transform obstacle;
-
     public Transform empty;
     public Transform tileHolder;
     public Transform pathFinder;
 
     // Settings
     public bool basicGrid = true;
-
     public bool fillInBorders;
     public bool processNeighbours;
     public bool createSplotches;
     public bool showEmpties;
     public bool initSpawns;
-    public bool findPath;
+    public bool visionOpt;
 
     // Grid size and resolution
     public int floorCellWidth = 8;
@@ -81,7 +81,7 @@ public class Floor : MonoBehaviour
 
     private void HandleFloorTiles()
     {
-        if (gridFillObj == null)
+        if (gridFillObj == null || visionOpt == false)
         {
             return;
         }
