@@ -39,7 +39,7 @@ public class PathFinder : MonoBehaviour
         int planeSize = grid.GetLength(0) * grid.GetLength(1);
         if (floodPlane.Count < planeSize / 2)
         {
-            Debug.Log($"Flooded only {floodPlane.Count} out of {planeSize} cells");
+            // Debug.Log($"Flooded only {floodPlane.Count} out of {planeSize} cells");
             return;
         }
 
@@ -81,8 +81,8 @@ public class PathFinder : MonoBehaviour
 
         // Select a random point for left start
 
-        Debug.Log($"left: {leftSeedPoint}");
-        Debug.Log($"left: {rightSeedpoint}");
+        // Debug.Log($"left: {leftSeedPoint}");
+        // Debug.Log($"right: {rightSeedpoint}");
 
         // Place markers
         // Transform start = Instantiate(playerOne, leftSeedPoint, Quaternion.identity);
@@ -130,9 +130,9 @@ public class PathFinder : MonoBehaviour
 
             if (dry.Count == 0)
             {
-                // EXIT with a grace
+                // EXIT with grace
                 flooding = false;
-                Debug.Log($"Plane flooded : {flooded.Count}");
+                // Debug.Log($"Plane flooded : {flooded.Count}");
             }
         }
 
@@ -180,7 +180,7 @@ public class PathFinder : MonoBehaviour
                         positionDepth = searchPositionD;
                         break;
                     }
-                    Debug.Log($"{searchPositionW},{searchPositionD}");
+                    // Debug.Log($"{searchPositionW},{searchPositionD}");
                 }
 
                 if (!found)
@@ -235,11 +235,6 @@ public class PathFinder : MonoBehaviour
             }
             // if nbr is occupied
             if (floor.finalGrid[width + posW, depth + posD] == 1)
-            {
-                continue;
-            }
-            // if nbr is POI
-            if (floor.gridPOI[width + posW, depth + posD] == 1)
             {
                 continue;
             }

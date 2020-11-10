@@ -14,7 +14,7 @@ public class Map : MonoBehaviour
     public Transform mapHolder;
     public Transform pathFinder;
 
-    // dimensions
+    // Dimensions
     [Header("Grid")]
     public int floorCellWidth = 8;
     public int floorCellDepth = 8;
@@ -46,7 +46,7 @@ public class Map : MonoBehaviour
     private int[,] gridBorders;
     private int[,] gridNbrs;
     private int[,] gridSplotches;
-    public int[,] gridPOI; // to be re-worked
+    private int[,] gridTypes;
     public int[,] finalGrid;
     public Transform[,] gridElements;
     private Dictionary<Array, bool> grids; // to be reworked
@@ -90,14 +90,20 @@ public class Map : MonoBehaviour
         // 3.
         CreateSplotches(); // DONE
 
+        // 4.
+        ClumpNbrs();
+
         // 5.
         CreateBordersGrid(); // DONE
 
         // 6.
-        CombineGrids(); // DONE
+        CollapseGrids(); // DONE
 
-        // 7.
+        // Mat.
         MaterializeFloor();
+
+        // Color
+        ColorizePOI();
 
     }
 
@@ -140,7 +146,8 @@ public class Map : MonoBehaviour
         gridSplotches = new int[width, depth];
 
         // Init Points Of Interest grid
-        gridPOI = new int[width, depth];
+        gridTypes = new int[width, depth];
+
     }
     private void CreateBasicGrid()
     {
@@ -154,9 +161,10 @@ public class Map : MonoBehaviour
                     for (int cellW = 0; cellW < cellCols; cellW += 1)
                     {
                         //Debug.Log($"{countD}/{countW}: {cellD}/{cellW}");
-                        int positionY = countD * cellRows + cellD;
-                        int positionX = countW * cellCols + cellW;
-                        gridBase[positionX, positionY] = currentCell.Grid()[cellW, cellD];
+                        int posD = countD * cellRows + cellD;
+                        int posW = countW * cellCols + cellW;
+                        gridBase[posW, posD] = currentCell.Grid()[cellW, cellD];
+                        gridTypes[posW, posD] = 1;
                     }
                 }
             }
@@ -216,7 +224,29 @@ public class Map : MonoBehaviour
         Debug.Log("Splotches ON");
     }
 
-    private void CombineGrids()
+    private void ClumpNbrs()
+    {
+        // TODO So far only for coloring
+        // Try to find all squares
+        for (int countW = 0; countW < width - 2; countW++)
+        {
+            for (int countD = 0; countD < depth - 2; countD++)
+            {
+                if ((gridBase[countW, countD] == 1) &&
+                    (gridBase[countW + 1, countD] == 1) &&
+                    (gridBase[countW, countD + 1] == 1) &&
+                    (gridBase[countW + 1, countD + 1] == 1))
+                {
+                    gridTypes[countW, countD] = 4;
+                    gridTypes[countW + 1, countD] = 4;
+                    gridTypes[countW, countD + 1] = 4;
+                    gridTypes[countW + 1, countD + 1] = 4;
+                }
+            }
+        }
+    }
+
+    private void CollapseGrids()
     {
         foreach (KeyValuePair<Array, bool> grid in grids)
         {
@@ -279,7 +309,7 @@ public class Map : MonoBehaviour
                 {
                     obj = mapElements[0];
                 }
-                // positionY = number of cells right * cell width + number of indeces in the cell
+                // positionY = number of cells right * cell width + number of indices in the cell
                 if (obj != null)
                 {
                     int positionX = countW;
@@ -297,32 +327,75 @@ public class Map : MonoBehaviour
         {
             for (int countD = posD - mag; countD <= posD + mag; countD += 1)
             {
-                if ((countW > 1) && (countW < width - 2) && // withn width (double border excluded)
-                    (countD > 1) && (countD < depth - 2) && // within depth (double border excluded)
-                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag)) // within mag of the coordinates
+                if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
+                    (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
+                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag)) // within magnitude of the coordinates
                 {
                     gridSplotches[countW, countD] = 1;
-                    // DEBUG ONLY
-                    gridPOI[countW, countD] = 1;
                 }
             }
         }
+
+        // Find bordering obstacles
+        // Increase readius by 1
+        // all cells in the larger radius but not in the original one, are on the border
+        // check if there are obstacles - if so - mark them as POI
+        int rimDepth = 2;
+        for (int countW = posW - mag - rimDepth; countW <= posW + mag + rimDepth; countW += 1)
+        {
+            for (int countD = posD - mag - rimDepth; countD <= posD + mag + rimDepth; countD += 1)
+            {
+                if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
+                    (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
+                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag + rimDepth)) // within magnitude of the broader coordinates
+                {
+                    if (gridSplotches[countW, countD] == 0 && gridBase[countW, countD] == 1) // not within the strict coordinates and has an obstacle
+                    {
+                        gridTypes[countW, countD] = 3;
+                    }
+                }
+            }
+        }
+
+        // mark the center as POI
+        gridSplotches[posW, posD] = 0;
+        gridTypes[posW, posD] = 2;
+        gridBase[posW, posD] = 1;
     }
+
+    private void ColorizePOI()
+    {
+        // DBG only while WIP
+        // Colorize POI
+
+        // Get library and palette
+        Palette palette = FindObjectOfType<Palette>();
+
+        // Iterate type grid
+        for (int countW = 0; countW < width; countW += 1)
+        {
+            for (int countD = 0; countD < depth; countD += 1)
+            {
+                gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[gridTypes[countW, countD]];
+            }
+        }
+    }
+
     private int[,] OverlayGrids(int[,] finalGrid, int[,] grid, bool additive)
     {
-        for (int cd = 0; cd < depth; cd += 1)
+        for (int countD = 0; countD < depth; countD += 1)
         {
-            for (int cw = 0; cw < width; cw += 1)
+            for (int countW = 0; countW < width; countW += 1)
             {
-                if (grid[cw, cd] == 1)
+                if (grid[countW, countD] == 1)
                 {
                     if (additive)
                     {
-                        finalGrid[cw, cd] = 1;
+                        finalGrid[countW, countD] = 1;
                     }
                     else
                     {
-                        finalGrid[cw, cd] = 0;
+                        finalGrid[countW, countD] = 0;
                     }
                 }
             }
