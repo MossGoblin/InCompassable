@@ -80,8 +80,9 @@ public class Map : MonoBehaviour
         X. place borders
         */
 
-        // 1.
         InitGrids();
+
+        // 1.
         CreateBasicGrid(); // DONE
 
         // 2.
@@ -96,14 +97,17 @@ public class Map : MonoBehaviour
         // 5.
         CreateBordersGrid(); // DONE
 
+
         // 6.
         CollapseGrids(); // DONE
+
+        SetBasicGridTypes();
 
         // Mat.
         MaterializeFloor();
 
         // Color
-        ColorizePOI();
+        ColorizeGrid();
 
     }
 
@@ -161,16 +165,26 @@ public class Map : MonoBehaviour
                     for (int cellW = 0; cellW < cellCols; cellW += 1)
                     {
                         //Debug.Log($"{countD}/{countW}: {cellD}/{cellW}");
-                        int posD = countD * cellRows + cellD;
                         int posW = countW * cellCols + cellW;
+                        int posD = countD * cellRows + cellD;
                         gridBase[posW, posD] = currentCell.Grid()[cellW, cellD];
-                        gridTypes[posW, posD] = 1;
                     }
                 }
             }
         }
         grids.Add(gridBase, true);
         Debug.Log("Basic ON");
+    }
+
+    private void SetBasicGridTypes()
+    {
+        for (int countW = 0; countW < width; countW++)
+        {
+            for (int countD = 0; countD < depth; countD++)
+            {
+                gridTypes[countW, countD] = finalGrid[countW, countD];
+            }
+        }
     }
 
     private void CreateNbrsGrid()
@@ -363,7 +377,7 @@ public class Map : MonoBehaviour
         gridBase[posW, posD] = 1;
     }
 
-    private void ColorizePOI()
+    private void ColorizeGrid()
     {
         // DBG only while WIP
         // Colorize POI
