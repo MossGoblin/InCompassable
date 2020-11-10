@@ -11,7 +11,7 @@ public class PathFinder : MonoBehaviour
     public Transform playerOne;
     public Transform playerTwo;
 
-    public Floor floor;
+    public Map floor;
     public Transform spawnPoints;
 
     public int minFreeNbrs = 3;
@@ -194,7 +194,7 @@ public class PathFinder : MonoBehaviour
 
     public void DebugColor(Vector3 position, Color color)
     {
-        Transform[] flatGrid = floor.gridFillObj.Cast<Transform>().ToArray();
+        Transform[] flatGrid = floor.gridElements.Cast<Transform>().ToArray();
         Transform obj = Array.Find(flatGrid, o => o.transform.position.x == position.x && o.transform.position.z == position.z);
         if (obj != null)
         {

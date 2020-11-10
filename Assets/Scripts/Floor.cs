@@ -8,10 +8,10 @@ using Random = UnityEngine.Random;
 public class Floor : MonoBehaviour
 {
     // Refs
-    public Transform obstacle;
-    public Transform empty;
-    public Transform tileHolder;
-    public Transform pathFinder;
+    public Transform obstacle; // moved to list
+    public Transform empty; // moved to list
+    public Transform tileHolder; // moved
+    public Transform pathFinder; // moved
 
     // Settings
     public bool basicGrid = true;
@@ -20,7 +20,7 @@ public class Floor : MonoBehaviour
     public bool createSplotches;
     public bool showEmpties;
     public bool initSpawns;
-    public bool visionOpt;
+    public bool visionOpt; // moved
 
     // Grid size and resolution
     public int floorCellWidth = 8;
@@ -62,21 +62,21 @@ public class Floor : MonoBehaviour
     {
         playerOne = GameObject.Find("PlayerOne").transform;
         playerTwo = GameObject.Find("PlayerTwo").transform;
-        ResetGrids();
+        CreateMap();
     }
 
     private void HandleInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            ResetGrids();
-        }
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     ResetGrids();
+        // }
     }
 
     private void Update()
     {
-        HandleInput();
         HandleFloorTiles();
+        HandleInput();
     }
 
     private void HandleFloorTiles()
@@ -105,14 +105,38 @@ public class Floor : MonoBehaviour
         }
     }
 
-    private void ResetGrids()
+    private void CreateMap()
     {
+        /*
+        grid creation
+
+        1. create basic grid
+        2. combine nbrs
+
+        pois
+        3. create splotches
+        4. process down clusters
+
+        5. combine grids
+
+        X. place borders
+        */
+
+        // 1.
         InitGrids();
         CreateBasicGrid();
-        CreateBordersGrid();
+
+        // 2.
         CreateNbrsGrid();
+
+        // 3.
         CreateSplotches();
+
+        // 5.
         CombineGrids();
+        CreateBordersGrid();
+
+        // 6.
         MaterializeFloor();
         ColorFloorGradient(Color.blue, Color.green);
         pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
