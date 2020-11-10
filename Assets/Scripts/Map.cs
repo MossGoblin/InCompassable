@@ -85,23 +85,23 @@ public class Map : MonoBehaviour
         // 1.
         CreateBasicGrid(); // DONE
 
+        // 5.
+        CreateBordersGrid(); // DONE
+
         // 2.
         CreateNbrsGrid(); // DONE
+
+        // 4.
+        ClumpNbrs(); // TODO
+
+        SetBasicGridTypes(); // TODO
 
         // 3.
         CreateSplotches(); // DONE
 
-        // 4.
-        ClumpNbrs();
-
-        // 5.
-        CreateBordersGrid(); // DONE
-
-
         // 6.
         CollapseGrids(); // DONE
 
-        SetBasicGridTypes();
 
         // Mat.
         MaterializeFloor();
@@ -217,20 +217,23 @@ public class Map : MonoBehaviour
 
         for (int count = 0; count < splotchNum; count += 1)
         {
+            int border = 5;
+
             // choose X
-            int rawD = Random.Range(0, width);
+            int rawW = Random.Range(border-1, width-border);
 
             // choose Y
-            int rawW = previousColumn + Random.Range((int)(splotchDev * 2 / 3), (int)(splotchDev * 3 / 2));
+            int rawD = previousColumn + Random.Range((int)(splotchDev * 1 / 2), (int)(splotchDev * 2));
 
             // normalize position
-            int posD = rawD % (width - 2);
-            int posW = rawW % (depth - 2);
+            int posW = rawW % (width - border);
+            int posD = rawD % (depth - border);
+            // TODO exclude the border properly
 
             // get magnitude
             int splotchMagnitude = (int)Random.Range(splotchSize / 2, splotchSize);
 
-            PlaceSplotch(posD, posW, splotchMagnitude);
+            PlaceSplotch(posW, posD, splotchMagnitude);
             previousColumn = posW;
         }
 
