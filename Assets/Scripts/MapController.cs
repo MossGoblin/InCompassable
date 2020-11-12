@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Map : MonoBehaviour
+public class MapController : MonoBehaviour
 {
     // Prefabs
     [Header("Prefabs")]
@@ -29,6 +29,7 @@ public class Map : MonoBehaviour
     [Header("Layers")]
     public int splotchNum = 3;
     public int splotchSize = 3;
+    public int splotchRimWidth = 2;
 
     // Players
     [Header("Players")]
@@ -43,20 +44,22 @@ public class Map : MonoBehaviour
     // Grids
     private Cell[,] gridCells;
     private int[,] gridBase;
-    private int[,] gridBorders;
-    private int[,] gridNbrs;
-    private int[,] gridSplotches;
     private int[,] gridTypes;
     public int[,] finalGrid;
     public Transform[,] gridElements;
     private int[,] gridPOI;
-    private Dictionary<Array, bool> grids; // to be reworked
+
+    // 0 - do not change
+    // 1 - remove
+    // 2 - add
+    private int[,] gridDiff;
 
     public void Start()
     {
         // Create the map
         CreateMap();
-        // PositionPlayers();
+        // DBG player spawn plug
+        PositionPlayers();
     }
 
     public void Update()
@@ -84,24 +87,22 @@ public class Map : MonoBehaviour
         InitGrids();
 
         // 1.
-        CreateBasicGrid(); // DONE
+        CreateBasicGrid();
 
         // 5.
-        CreateBordersGrid(); // DONE
+        CreateBordersGrid();
 
         // 2.
-        CreateNbrsGrid(); // DONE
-
-        // 4.
-        ClumpSquares(); // TODO
-
-        SetBasicGridTypes(); // TODO
+        CreateNbrsGrid();
 
         // 3.
-        CreateSplotches(); // DONE
+        CreateSplotches();
+
+        // 4.
+        ClumpSquares(); // TODO Clump squares
 
         // 6.
-        CollapseGrids(); // DONE
+        CollapseGrids();
 
         // Mat.
         MaterializeFloor();
@@ -116,8 +117,6 @@ public class Map : MonoBehaviour
         // cache dimentions
         this.width = floorCellWidth * cellCols;
         this.depth = floorCellDepth * cellRows;
-
-        grids = new Dictionary<Array, bool>();
 
         // Init cells grid
         gridCells = new Cell[floorCellWidth, floorCellDepth];
@@ -134,20 +133,15 @@ public class Map : MonoBehaviour
         // Init basic grid
         gridBase = new int[width, depth];
 
-        // Init borders grid
-        gridBorders = new int[width, depth];
-
-        // Init neighbours grid
-        gridNbrs = new int[width, depth];
-
         // Init final grid
         finalGrid = new int[width, depth];
 
         // Init object grid
         gridElements = new Transform[width, depth];
 
-        // Init splotch grid
-        gridSplotches = new int[width, depth];
+        // Init difference grid
+        gridDiff = new int[width, depth];
+        gridDiff = FillGrid(gridDiff, 2); // fill in with 2's -- no change to original grid
 
         // Init Points Of Interest grid
         gridTypes = new int[width, depth];
@@ -167,27 +161,16 @@ public class Map : MonoBehaviour
                 {
                     for (int cellW = 0; cellW < cellCols; cellW += 1)
                     {
-                        //Debug.Log($"{countD}/{countW}: {cellD}/{cellW}");
                         int posW = countW * cellCols + cellW;
                         int posD = countD * cellRows + cellD;
-                        gridBase[posW, posD] = currentCell.Grid()[cellW, cellD];
+                        int value = currentCell.Grid()[cellW, cellD];
+                        gridBase[posW, posD] = value;
+                        MarkPosition(posW, posD, value, value, false);
                     }
                 }
             }
         }
-        grids.Add(gridBase, true);
         Debug.Log("Basic ON");
-    }
-
-    private void SetBasicGridTypes()
-    {
-        for (int countW = 0; countW < width; countW++)
-        {
-            for (int countD = 0; countD < depth; countD++)
-            {
-                gridTypes[countW, countD] = finalGrid[countW, countD];
-            }
-        }
     }
 
     private void CreateNbrsGrid()
@@ -203,12 +186,10 @@ public class Map : MonoBehaviour
 
                 if (nbrCount == 2)
                 {
-                    gridNbrs[countW, countD] = 1;
+                    MarkPosition(countW, countD, 1, 1, true);
                 }
             }
         }
-
-        grids.Add(gridNbrs, true);
         Debug.Log("Nbrs ON");
     }
 
@@ -225,23 +206,20 @@ public class Map : MonoBehaviour
         {
             int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
             int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
-            // DBG test
-            // int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
-            int splotchMagnitude = splotchSize;
+            // DBG TRYOUTS
+            // int splotchMagnitude = splotchSize;
+            int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
             PlaceSplotch(posW, posD, splotchMagnitude);
-            // mark in POI grid
-            gridPOI[posW, posD] = 1;
-
         }
 
-        grids.Add(gridSplotches, false);
         Debug.Log("Splotches ON");
     }
 
     private void ClumpSquares()
     {
+        Debug.Log("Trying for squares");
         // TODO So far only for coloring
-        // Try to find all squares
+        // Try to find all squares 2×2
         for (int countW = 0; countW < width - 2; countW++)
         {
             for (int countD = 0; countD < depth - 2; countD++)
@@ -254,12 +232,13 @@ public class Map : MonoBehaviour
                     ((gridPOI[countW, countD] == 0) &&
                     (gridPOI[countW + 1, countD] == 0) &&
                     (gridPOI[countW, countD + 1] == 0) &&
-                    (gridPOI[countW + 1, countD + 1] == 0)))
+                    (gridPOI[countW + 1, countD + 1] == 0))
+                    )
                 {
-                    gridTypes[countW, countD] = 4;
-                    gridTypes[countW + 1, countD] = 4;
-                    gridTypes[countW, countD + 1] = 4;
-                    gridTypes[countW + 1, countD + 1] = 4;
+                    MarkPosition(countW, countD, 4, 1, true);
+                    MarkPosition(countW + 1, countD, 4, 1, true);
+                    MarkPosition(countW, countD + 1, 4, 1, true);
+                    MarkPosition(countW + 1, countD + 1, 4, 1, true);
                     Debug.Log($"Square: {countW}/{countD}");
                 }
             }
@@ -268,44 +247,46 @@ public class Map : MonoBehaviour
 
     private void CollapseGrids()
     {
-        foreach (KeyValuePair<Array, bool> grid in grids)
-        {
-            finalGrid = OverlayGrids(finalGrid, (int[,])grid.Key, grid.Value);
-        }
+        finalGrid = CopyGrid(gridBase);
+        finalGrid = OverlayGrids(finalGrid, gridDiff);
     }
 
     private void CreateBordersGrid()
     {
+        int podW = 0;
+        int posD = 0;
         for (int countW = 0; countW < gridBase.GetLength(0); countW += 1)
         {
-            gridBorders[countW, 0] = 1;
+            podW = countW;
+            posD = 0;
+            MarkPosition(podW, posD, 1, 1, false);
         }
 
         for (int countW = 0; countW < gridBase.GetLength(0); countW += 1)
         {
-            gridBorders[countW, gridBase.GetLength(1) - 1] = 1;
+            podW = countW;
+            posD = gridBase.GetLength(1) - 1;
+            MarkPosition(podW, posD, 1, 1, false);
         }
 
         for (int countD = 0; countD < gridBase.GetLength(1); countD += 1)
         {
-            gridBorders[0, countD] = 1;
+            podW = 0;
+            posD = countD;
+            MarkPosition(podW, posD, 1, 1, false);
         }
 
         for (int countD = 0; countD < gridBase.GetLength(1); countD += 1)
         {
-            gridBorders[gridBase.GetLength(0) - 1, countD] = 1;
+            podW = gridBase.GetLength(0) - 1;
+            posD = countD;
+            MarkPosition(podW, posD, 1, 1, false);
         }
 
-        grids.Add(gridBorders, true);
         Debug.Log("Borders ON");
     }
     private void MaterializeFloor()
     {
-        if (grids.Count == 0)
-        {
-            return;
-        }
-
         // clear all previously created objects
         foreach (Transform obj in mapHolder)
         {
@@ -343,72 +324,35 @@ public class Map : MonoBehaviour
 
     private void PlaceSplotch(int posW, int posD, int mag)
     {
-        for (int countW = posW - mag; countW <= posW + mag; countW += 1)
+        Vector3 center = new Vector3(posW, 0, posD);
+        Vector3 position = new Vector3(0, 0, 0);
+        // iterate the vicinity of the splotch center
+        for (int countW = posW - mag - splotchRimWidth; countW <= posW + mag + splotchRimWidth; countW += 1)
         {
-            for (int countD = posD - mag; countD <= posD + mag; countD += 1)
+            for (int countD = posD - mag - splotchRimWidth; countD <= posD + mag + splotchRimWidth; countD += 1)
             {
-                if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
-                    (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
-                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag)) // within magnitude of the coordinates
+                if ((countW > 2) && (countW < width - 2) &&
+                    (countD > 2) && (countD < depth - 2))
                 {
-                    gridSplotches[countW, countD] = 1;
-                    // mark in POI grid
-                    gridPOI[countW, countD] = 1;
-                }
-            }
-        }
-
-        // new border marker
-        // extend range; find all obstacles on that range
-        int rimDepth = 1;
-        for (int countW = posW - mag - rimDepth; countW <= posW + mag + rimDepth; countW += 1)
-        {
-            for (int countD = posD - mag - rimDepth; countD <= posD + mag + rimDepth; countD += 1)
-            {
-                if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
-                    (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
-                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) >= (float)mag) &&
-                    ((Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= (float)mag + rimDepth))) // cell on the rim
-                {
-                    if (gridBase[countW, countD] == 1)
+                    position = new Vector3(countW, 0 , countD);
+                    // if it is on the rim
+                    if ((GetDistance(position, center) >= (float)mag) &&
+                    ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
                     {
-                        gridTypes[countW, countD] = 3; // TODO fumigate
-                        // mark in POI grid
-                        gridPOI[countW, countD] = 1;
+                        if (gridBase[countW, countD] == 1) // if there is a block
+                        {
+                            MarkPosition(countW, countD, 3, 1, true); // mark splotch rim
+                        }
+                    }
+                    else if ((GetDistance(position, center) < mag)) // if it is inside the radius
+                    {
+                        MarkPosition(countW, countD, 0, 0, false); // empty splotch radius
                     }
                 }
             }
         }
 
-
-        // Find bordering obstacles
-        // Increase readius by 1
-        // all cells in the larger radius but not in the original one, are on the border
-        // check if there are obstacles - if so - mark them as POI
-        // TODO OLD
-        // int rimDepth = 2;
-        // for (int countW = posW - mag - rimDepth; countW <= posW + mag + rimDepth; countW += 1)
-        // {
-        //     for (int countD = posD - mag - rimDepth; countD <= posD + mag + rimDepth; countD += 1)
-        //     {
-        //         if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
-        //             (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
-        //             (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag + rimDepth)) // within magnitude of the broader coordinates
-        //         {
-        //             if (gridSplotches[countW, countD] == 0 && gridBase[countW, countD] == 1) // not within the strict coordinates and has an obstacle
-        //             {
-        //                 gridTypes[countW, countD] = 3;
-        //                 // mark in POI grid
-        //                 gridPOI[countW, countD] = 1;
-        //             }
-        //         }
-        //     }
-        // }
-
-        // mark the center as POI
-        gridSplotches[posW, posD] = 0;
-        gridTypes[posW, posD] = 2;
-        gridBase[posW, posD] = 1;
+        MarkPosition(posW, posD, 2, 1, true); // mark splotch center
     }
 
     private void ColorizeGrid()
@@ -429,33 +373,27 @@ public class Map : MonoBehaviour
         }
     }
 
-    private int[,] OverlayGrids(int[,] finalGrid, int[,] grid, bool additive)
+    private int[,] OverlayGrids(int[,] baseGrid, int[,] newGrid)
     {
         for (int countD = 0; countD < depth; countD += 1)
         {
             for (int countW = 0; countW < width; countW += 1)
             {
-                if (grid[countW, countD] == 1)
+                if (newGrid[countW, countD] != 2)
                 {
-                    if (additive)
-                    {
-                        finalGrid[countW, countD] = 1;
-                    }
-                    else
-                    {
-                        finalGrid[countW, countD] = 0;
-                    }
+                    baseGrid[countW, countD] = newGrid[countW, countD];
                 }
             }
         }
 
-        return finalGrid;
+        return baseGrid;
     }
 
     private void PositionPlayers()
     {
         pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
     }
+
     private void ClearOutOfRangeObstacles()
     {
         if (gridElements == null || visionRange == false)
@@ -466,8 +404,8 @@ public class Map : MonoBehaviour
         {
             if (playerOne != null && playerTwo != null)
             {
-                float distanceToOne = CheckDistance(obj, playerOne);
-                float distanceToTwo = CheckDistance(obj, playerTwo);
+                float distanceToOne = GetDistance(obj, playerOne);
+                float distanceToTwo = GetDistance(obj, playerTwo);
 
                 if (distanceToOne <= visibilityDistance || distanceToTwo <= visibilityDistance)
                 {
@@ -481,7 +419,8 @@ public class Map : MonoBehaviour
 
         }
     }
-    private float CheckDistance(Transform objectOne, Transform objectTwo)
+
+    private float GetDistance(Transform objectOne, Transform objectTwo)
     {
         float distance;
 
@@ -489,6 +428,23 @@ public class Map : MonoBehaviour
 
         float distX = Mathf.Abs(objectTwo.position.x - objectOne.position.x);
         float distZ = Mathf.Abs(objectTwo.position.z - objectOne.position.z);
+
+        float smaller = Mathf.Min(distX, distZ);
+        float larger = Mathf.Max(distX, distZ);
+
+        distance = smaller * sqrtTwo + (larger - smaller);
+
+        return distance;
+    }
+
+    private float GetDistance(Vector3 positionOne, Vector3 positionTwo)
+    {
+        float distance;
+
+        float sqrtTwo = Mathf.Sqrt(2f);
+
+        float distX = Mathf.Abs(positionTwo.x - positionOne.x);
+        float distZ = Mathf.Abs(positionTwo.z - positionOne.z);
 
         float smaller = Mathf.Min(distX, distZ);
         float larger = Mathf.Max(distX, distZ);
@@ -518,4 +474,53 @@ public class Map : MonoBehaviour
         return nbrs;
     }
 
+    private int[,] CopyGrid(int[,] origin)
+    {
+        int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
+        for (int countA = 0; countA < origin.GetLength(0); countA++)
+        {
+            for (int countB = 0; countB < origin.GetLength(1); countB++)
+            {
+                target[countA, countB] = origin[countA, countB];
+            }
+        }
+        return target;
+    }
+
+    private void MarkPosition(Vector3 position, int type, int obj, bool poi)
+    {
+        int posW = (int)position.x;
+        int posD = (int)position.z;
+
+        gridTypes[posW, posD] = type;
+        gridPOI[posW, posD] = 1;
+        gridDiff[posW, posD] = obj;
+    }
+
+    /// <summary>
+    /// Mark position of a cell for processing
+    /// </summary>
+    /// <remarks>
+    /// posW, posD, object type, empty/block, poi 
+    /// </remarks>
+    private void MarkPosition(int posW, int posD, int type, int obj, bool poi)
+    {
+        gridTypes[posW, posD] = type;
+        gridPOI[posW, posD] = poi ? 1 : 0;
+        gridDiff[posW, posD] = obj;
+    }
+
+    private int[,] FillGrid(int[,] origin, int value)
+    {
+        int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
+        for (int countA = 0; countA < origin.GetLength(0); countA++)
+        {
+            for (int countB = 0; countB < origin.GetLength(1); countB++)
+            {
+                target[countA, countB] = value;
+            }
+        }
+        return target;
+
+    }
 }

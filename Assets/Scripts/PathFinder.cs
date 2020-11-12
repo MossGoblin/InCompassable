@@ -11,7 +11,7 @@ public class PathFinder : MonoBehaviour
     public Transform playerOne;
     public Transform playerTwo;
 
-    public Map floor;
+    public MapController floor;
     public Transform spawnPoints;
 
     public int minFreeNbrs = 3;
