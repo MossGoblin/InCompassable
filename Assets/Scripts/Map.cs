@@ -49,13 +49,14 @@ public class Map : MonoBehaviour
     private int[,] gridTypes;
     public int[,] finalGrid;
     public Transform[,] gridElements;
+    private int[,] gridPOI;
     private Dictionary<Array, bool> grids; // to be reworked
 
     public void Start()
     {
         // Create the map
         CreateMap();
-        PositionPlayers();
+        // PositionPlayers();
     }
 
     public void Update()
@@ -92,7 +93,7 @@ public class Map : MonoBehaviour
         CreateNbrsGrid(); // DONE
 
         // 4.
-        ClumpNbrs(); // TODO
+        ClumpSquares(); // TODO
 
         SetBasicGridTypes(); // TODO
 
@@ -101,7 +102,6 @@ public class Map : MonoBehaviour
 
         // 6.
         CollapseGrids(); // DONE
-
 
         // Mat.
         MaterializeFloor();
@@ -151,6 +151,9 @@ public class Map : MonoBehaviour
 
         // Init Points Of Interest grid
         gridTypes = new int[width, depth];
+
+        // POI grid
+        gridPOI = new int[width, depth];
 
     }
     private void CreateBasicGrid()
@@ -211,37 +214,31 @@ public class Map : MonoBehaviour
 
     private void CreateSplotches()
     {
-        int previousColumn = 0;
 
-        int splotchDev = (int)(depth / splotchNum);
+        // new position picking
+        // input - number of splotches; width and depth of map
 
-        for (int count = 0; count < splotchNum; count += 1)
+        int averageDistanceW = (int)(width / (splotchNum + 1)); // X splotches => x+1 spreads around them
+        // width - avoid border
+
+        for (int count = 1; count <= splotchNum; count++)
         {
-            int border = 5;
-
-            // choose X
-            int rawW = Random.Range(border-1, width-border);
-
-            // choose Y
-            int rawD = previousColumn + Random.Range((int)(splotchDev * 1 / 2), (int)(splotchDev * 2));
-
-            // normalize position
-            int posW = rawW % (width - border);
-            int posD = rawD % (depth - border);
-            // TODO exclude the border properly
-
-            // get magnitude
-            int splotchMagnitude = (int)Random.Range(splotchSize / 2, splotchSize);
-
+            int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
+            int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
+            // DBG test
+            // int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
+            int splotchMagnitude = splotchSize;
             PlaceSplotch(posW, posD, splotchMagnitude);
-            previousColumn = posW;
+            // mark in POI grid
+            gridPOI[posW, posD] = 1;
+
         }
 
         grids.Add(gridSplotches, false);
         Debug.Log("Splotches ON");
     }
 
-    private void ClumpNbrs()
+    private void ClumpSquares()
     {
         // TODO So far only for coloring
         // Try to find all squares
@@ -249,15 +246,21 @@ public class Map : MonoBehaviour
         {
             for (int countD = 0; countD < depth - 2; countD++)
             {
-                if ((gridBase[countW, countD] == 1) &&
+                if (((gridBase[countW, countD] == 1) &&
                     (gridBase[countW + 1, countD] == 1) &&
                     (gridBase[countW, countD + 1] == 1) &&
                     (gridBase[countW + 1, countD + 1] == 1))
+                    &&
+                    ((gridPOI[countW, countD] == 0) &&
+                    (gridPOI[countW + 1, countD] == 0) &&
+                    (gridPOI[countW, countD + 1] == 0) &&
+                    (gridPOI[countW + 1, countD + 1] == 0)))
                 {
                     gridTypes[countW, countD] = 4;
                     gridTypes[countW + 1, countD] = 4;
                     gridTypes[countW, countD + 1] = 4;
                     gridTypes[countW + 1, countD + 1] = 4;
+                    Debug.Log($"Square: {countW}/{countD}");
                 }
             }
         }
@@ -349,30 +352,58 @@ public class Map : MonoBehaviour
                     (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag)) // within magnitude of the coordinates
                 {
                     gridSplotches[countW, countD] = 1;
+                    // mark in POI grid
+                    gridPOI[countW, countD] = 1;
                 }
             }
         }
 
-        // Find bordering obstacles
-        // Increase readius by 1
-        // all cells in the larger radius but not in the original one, are on the border
-        // check if there are obstacles - if so - mark them as POI
-        int rimDepth = 2;
+        // new border marker
+        // extend range; find all obstacles on that range
+        int rimDepth = 1;
         for (int countW = posW - mag - rimDepth; countW <= posW + mag + rimDepth; countW += 1)
         {
             for (int countD = posD - mag - rimDepth; countD <= posD + mag + rimDepth; countD += 1)
             {
                 if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
                     (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
-                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag + rimDepth)) // within magnitude of the broader coordinates
+                    (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) >= (float)mag) &&
+                    ((Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= (float)mag + rimDepth))) // cell on the rim
                 {
-                    if (gridSplotches[countW, countD] == 0 && gridBase[countW, countD] == 1) // not within the strict coordinates and has an obstacle
+                    if (gridBase[countW, countD] == 1)
                     {
-                        gridTypes[countW, countD] = 3;
+                        gridTypes[countW, countD] = 3; // TODO fumigate
+                        // mark in POI grid
+                        gridPOI[countW, countD] = 1;
                     }
                 }
             }
         }
+
+
+        // Find bordering obstacles
+        // Increase readius by 1
+        // all cells in the larger radius but not in the original one, are on the border
+        // check if there are obstacles - if so - mark them as POI
+        // TODO OLD
+        // int rimDepth = 2;
+        // for (int countW = posW - mag - rimDepth; countW <= posW + mag + rimDepth; countW += 1)
+        // {
+        //     for (int countD = posD - mag - rimDepth; countD <= posD + mag + rimDepth; countD += 1)
+        //     {
+        //         if ((countW > 1) && (countW < width - 1) && // withn width (double border excluded)
+        //             (countD > 1) && (countD < depth - 1) && // within depth (double border excluded)
+        //             (Math.Sqrt(((countW - posW) * (countW - posW)) + ((countD - posD) * (countD - posD))) <= mag + rimDepth)) // within magnitude of the broader coordinates
+        //         {
+        //             if (gridSplotches[countW, countD] == 0 && gridBase[countW, countD] == 1) // not within the strict coordinates and has an obstacle
+        //             {
+        //                 gridTypes[countW, countD] = 3;
+        //                 // mark in POI grid
+        //                 gridPOI[countW, countD] = 1;
+        //             }
+        //         }
+        //     }
+        // }
 
         // mark the center as POI
         gridSplotches[posW, posD] = 0;
