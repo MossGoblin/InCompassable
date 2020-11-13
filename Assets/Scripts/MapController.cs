@@ -59,7 +59,7 @@ public class MapController : MonoBehaviour
         // Create the map
         CreateMap();
         // DBG player spawn plug
-        PositionPlayers();
+        // PositionPlayers();
     }
 
     public void Update()
@@ -96,7 +96,7 @@ public class MapController : MonoBehaviour
         CreateNbrsGrid();
 
         // 3.
-        CreateSplotches();
+        // CreateSplotches();
 
         // 4.
         ClumpSquares(); // TODO Clump squares
@@ -108,7 +108,7 @@ public class MapController : MonoBehaviour
         MaterializeFloor();
 
         // Color
-        ColorizeGrid();
+        // ColorizeGrid();
 
     }
 
@@ -215,7 +215,7 @@ public class MapController : MonoBehaviour
         Debug.Log("Splotches ON");
     }
 
-    private void ClumpSquares()
+    private void ClumpSquares_OLD()
     {
         Debug.Log("Trying for squares");
         // TODO So far only for coloring
@@ -244,6 +244,27 @@ public class MapController : MonoBehaviour
             }
         }
     }
+
+    private void ClumpSquares()
+    {
+        int[,] workingGrid = CopyGrid(gridBase);
+        
+        // create pattern for squares
+        int[,] squarePattern = new int[,]
+         {
+             {1, 1},
+             {1, 1}
+         };
+
+        List<(int, int)> squarePositions = PatternMapper.FindPattern(workingGrid, squarePattern);
+
+        // DBG LOG DUMP
+        foreach((int w, int d) square in squarePositions)
+        {
+            Debug.Log($"sq: {square.w}/{square.d}");
+        }
+    }
+
 
     private void CollapseGrids()
     {
@@ -334,7 +355,7 @@ public class MapController : MonoBehaviour
                 if ((countW > 2) && (countW < width - 2) &&
                     (countD > 2) && (countD < depth - 2))
                 {
-                    position = new Vector3(countW, 0 , countD);
+                    position = new Vector3(countW, 0, countD);
                     // if it is on the rim
                     if ((GetDistance(position, center) >= (float)mag) &&
                     ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
@@ -523,4 +544,5 @@ public class MapController : MonoBehaviour
         return target;
 
     }
+
 }
