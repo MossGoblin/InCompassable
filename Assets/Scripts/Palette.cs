@@ -15,5 +15,6 @@ public class Palette : MonoBehaviour
         palette.Add(2, Color.red); // splotch centers
         palette.Add(3, new Color(0.8f, 0.6f, 0.3f)); // splotch rim
         palette.Add(4, new Color(0.7f, 0.1f, 0.5f)); // squares
+        palette.Add(5, new Color(0.4f, 0.9f, 0.8f)); // arcs
     }
 }

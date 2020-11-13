@@ -40,6 +40,8 @@ public class MapController : MonoBehaviour
     [Range(0.1f, 0.45f)]
     public float maxPointDeviation = 0.2f;
 
+    [Header("Checks")]
+    public int mode;
 
     // Grids
     private Cell[,] gridCells;
@@ -56,6 +58,7 @@ public class MapController : MonoBehaviour
 
     public void Start()
     {
+        SetUpMode();
         // Create the map
         CreateMap();
         // DBG player spawn plug
@@ -65,6 +68,44 @@ public class MapController : MonoBehaviour
     public void Update()
     {
         ClearOutOfRangeObstacles();
+        HandleInput();
+    }
+    private void HandleInput()
+    {
+        // if (Input.GetKeyDown(KeyCode.Space))
+        // {
+        //     ClumpSquares();
+        // }
+    }
+    public void SetUpMode()
+    {
+        switch (mode)
+        {
+            case 1:
+                floorCellWidth = 3;
+                floorCellDepth = 3;
+                cellCols = 2;
+                cellRows = 2;
+                cellMin = 1;
+                cellMax = 3;
+                break;
+            case 2:
+                floorCellWidth = 4;
+                floorCellDepth = 8;
+                cellCols = 8;
+                cellRows = 4;
+                cellMin = 10;
+                cellMax = 15;
+                break;
+            default:
+                floorCellWidth = 8;
+                floorCellDepth = 8;
+                cellCols = 16;
+                cellRows = 8;
+                cellMin = 15;
+                cellMax = 25;
+                break;
+        }
     }
 
     private void CreateMap()
@@ -90,16 +131,17 @@ public class MapController : MonoBehaviour
         CreateBasicGrid();
 
         // 5.
-        CreateBordersGrid();
+        // CreateBordersGrid();
 
         // 2.
         CreateNbrsGrid();
 
+        // 4.
+        CollapseGrids();
+        ClumpSquares(); // TODO Clump squares
+
         // 3.
         // CreateSplotches();
-
-        // 4.
-        ClumpSquares(); // TODO Clump squares
 
         // 6.
         CollapseGrids();
@@ -108,7 +150,7 @@ public class MapController : MonoBehaviour
         MaterializeFloor();
 
         // Color
-        // ColorizeGrid();
+        ColorizeGrid();
 
     }
 
@@ -180,9 +222,9 @@ public class MapController : MonoBehaviour
             for (int countW = 1; countW < width - 1; countW += 1)
             {
                 int nbrCount = gridBase[countW, countD - 1] +
-                                  gridBase[countW, countD + 1] +
-                                  gridBase[countW - 1, countD] +
-                                  gridBase[countW + 1, countD];
+                               gridBase[countW, countD + 1] +
+                               gridBase[countW - 1, countD] +
+                               gridBase[countW + 1, countD];
 
                 if (nbrCount == 2)
                 {
@@ -215,54 +257,92 @@ public class MapController : MonoBehaviour
         Debug.Log("Splotches ON");
     }
 
-    private void ClumpSquares_OLD()
-    {
-        Debug.Log("Trying for squares");
-        // TODO So far only for coloring
-        // Try to find all squares 2×2
-        for (int countW = 0; countW < width - 2; countW++)
-        {
-            for (int countD = 0; countD < depth - 2; countD++)
-            {
-                if (((gridBase[countW, countD] == 1) &&
-                    (gridBase[countW + 1, countD] == 1) &&
-                    (gridBase[countW, countD + 1] == 1) &&
-                    (gridBase[countW + 1, countD + 1] == 1))
-                    &&
-                    ((gridPOI[countW, countD] == 0) &&
-                    (gridPOI[countW + 1, countD] == 0) &&
-                    (gridPOI[countW, countD + 1] == 0) &&
-                    (gridPOI[countW + 1, countD + 1] == 0))
-                    )
-                {
-                    MarkPosition(countW, countD, 4, 1, true);
-                    MarkPosition(countW + 1, countD, 4, 1, true);
-                    MarkPosition(countW, countD + 1, 4, 1, true);
-                    MarkPosition(countW + 1, countD + 1, 4, 1, true);
-                    Debug.Log($"Square: {countW}/{countD}");
-                }
-            }
-        }
-    }
-
     private void ClumpSquares()
     {
-        int[,] workingGrid = CopyGrid(gridBase);
-        
+        int[,] workingGrid = CopyGrid(finalGrid);
+
         // create pattern for squares
+        Debug.Log("Clumping squares...");
         int[,] squarePattern = new int[,]
-         {
-             {1, 1},
-             {1, 1}
-         };
+        {
+            {1, 1},
+            {1, 1}
+        };
 
         List<(int, int)> squarePositions = PatternMapper.FindPattern(workingGrid, squarePattern);
 
         // DBG LOG DUMP
-        foreach((int w, int d) square in squarePositions)
+        Debug.Log($"Squares: {squarePositions.Count}");
+        foreach ((int w, int d) square in squarePositions)
         {
             Debug.Log($"sq: {square.w}/{square.d}");
+
+            // DBG coloring
+            for (int countW = 0; countW < squarePattern.GetLength(0); countW++)
+            {
+                for (int countD = 0; countD < squarePattern.GetLength(1); countD++)
+                {
+                    MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
+                }
+            }
         }
+
+        // DBG Duplicate for debugging
+        // create pattern for squares
+        // int[,] arcPatternOne = new int[,]
+        // {
+        //     {0, 0, 0},
+        //     {0, 1, 0},
+        //     {0, 0, 0},
+        //     {0, 1, 0},
+        //     {0, 0, 0}
+        // };
+
+        // List<(int, int)> arcPositionsOne = PatternMapper.FindPattern(workingGrid, arcPatternOne);
+
+        // // DBG LOG DUMP
+        // Debug.Log($"Arcs One: {arcPositionsOne.Count}");
+        // foreach ((int w, int d) square in arcPositionsOne)
+        // {
+        //     // Debug.Log($"ar: {square.w}/{square.d}");
+
+        //     // DBG coloring
+        //     for (int countW = 0; countW < arcPatternOne.GetLength(0); countW++)
+        //     {
+        //         for (int countD = 0; countD < arcPatternOne.GetLength(1); countD++)
+        //         {
+        //             MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 5, 2, true);
+        //         }
+        //     }
+        // }
+
+        // int[,] arcPatternTwo = new int[,]
+        // {
+        //     {0, 0, 0, 0, 0},
+        //     {0, 1, 0, 1, 0},
+        //     {0, 0, 0, 0, 0}
+        // };
+
+        // List<(int, int)> arcPositionsTwo = PatternMapper.FindPattern(workingGrid, arcPatternTwo);
+
+        // // DBG LOG DUMP
+        // Debug.Log($"Arcs Two: {arcPositionsOne.Count}");
+        // foreach ((int w, int d) square in arcPositionsTwo)
+        // {
+        //     // Debug.Log($"ar: {square.w}/{square.d}");
+
+        //     // DBG coloring
+        //     for (int countW = 0; countW < arcPatternTwo.GetLength(0); countW++)
+        //     {
+        //         for (int countD = 0; countD < arcPatternTwo.GetLength(1); countD++)
+        //         {
+        //             MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 5, 2, true);
+        //         }
+        //     }
+        // }
+
+
+        // ColorizeGrid();
     }
 
 
@@ -270,6 +350,7 @@ public class MapController : MonoBehaviour
     {
         finalGrid = CopyGrid(gridBase);
         finalGrid = OverlayGrids(finalGrid, gridDiff);
+        Debug.Log("(grids)");
     }
 
     private void CreateBordersGrid()
@@ -394,15 +475,15 @@ public class MapController : MonoBehaviour
         }
     }
 
-    private int[,] OverlayGrids(int[,] baseGrid, int[,] newGrid)
+    private int[,] OverlayGrids(int[,] baseGrid, int[,] diffGrid)
     {
         for (int countD = 0; countD < depth; countD += 1)
         {
             for (int countW = 0; countW < width; countW += 1)
             {
-                if (newGrid[countW, countD] != 2)
+                if (diffGrid[countW, countD] != 2)
                 {
-                    baseGrid[countW, countD] = newGrid[countW, countD];
+                    baseGrid[countW, countD] = diffGrid[countW, countD];
                 }
             }
         }
