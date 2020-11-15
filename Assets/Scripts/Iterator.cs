@@ -15,7 +15,7 @@ namespace ToolBox
                 inner = i;
             }
         }
-        static public IEnumerable<Step> IterateWithStruct(int bound_i, int bound_b)
+        static public IEnumerable<Step> IterationWithStruct(int bound_i, int bound_b)
         {
 
             List<Step> loop = new List<Step>();
@@ -31,7 +31,7 @@ namespace ToolBox
             return loop;
         }
 
-        static public IEnumerable<(int i, int y)> Iterate(int bound_i, int bound_b)
+        static public IEnumerable<(int i, int y)> Iteration(int bound_i, int bound_b)
         {
             List<(int i, int y)> loop = new List<(int i, int y)>();
             for (int i = 0; i < bound_i; i++)
@@ -45,7 +45,7 @@ namespace ToolBox
             return loop;
         }
 
-        static public IEnumerable<(int i, int y, int c)> IterateWithCount(int bound_i, int bound_b)
+        static public IEnumerable<(int i, int y, int c)> IterationWithCount(int bound_i, int bound_b)
         {
             List<(int i, int y, int c)> loop = new List<(int i, int y, int c)>();
             int count = 0;
@@ -61,7 +61,7 @@ namespace ToolBox
             return loop;
         }
 
-        static public IEnumerable<(int i, int y)> IterateRange(int lower_i, int higher_i, int lower_y, int higher_b)
+        static public IEnumerable<(int i, int y)> IterationRange(int lower_i, int higher_i, int lower_y, int higher_b)
         {
             List<(int i, int y)> loop = new List<(int i, int y)>();
             for (int i = lower_i; i < higher_i; i++)

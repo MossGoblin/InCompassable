@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using ToolBox;
 
 public class MapController : MonoBehaviour
 {
@@ -62,7 +63,7 @@ public class MapController : MonoBehaviour
         // Create the map
         CreateMap();
         // DBG player spawn plug
-        // PositionPlayers();
+        PositionPlayers();
     }
 
     public void Update()
@@ -168,13 +169,9 @@ public class MapController : MonoBehaviour
         // Init cells grid
         gridCells = new Cell[floorCellWidth, floorCellDepth];
 
-        // Generate floorCellsDepth * floorCellWidth cells
-        for (int countW = 0; countW < floorCellWidth; countW += 1)
+        foreach ((int countW, int countD) in Iterator.Iteration(floorCellWidth, floorCellDepth))
         {
-            for (int countD = 0; countD < floorCellDepth; countD += 1)
-            {
-                gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax);
-            }
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax);
         }
 
         // Init basic grid
@@ -199,45 +196,57 @@ public class MapController : MonoBehaviour
     }
     private void CreateBasicGrid()
     {
-        for (int countW = 0; countW < floorCellWidth; countW += 1)
+
+        foreach ((int countW, int countD) in Iterator.Iteration(floorCellWidth, floorCellDepth))
         {
-            for (int countD = 0; countD < floorCellDepth; countD += 1)
+            Cell currentCell = gridCells[countW, countD];
+
+            foreach ((int cellW, int cellD) in Iterator.Iteration(cellCols, cellRows))
             {
-                Cell currentCell = gridCells[countW, countD];
-                for (int cellD = 0; cellD < cellRows; cellD += 1)
-                {
-                    for (int cellW = 0; cellW < cellCols; cellW += 1)
-                    {
-                        int posW = countW * cellCols + cellW;
-                        int posD = countD * cellRows + cellD;
-                        int value = currentCell.Grid()[cellW, cellD];
-                        gridBase[posW, posD] = value;
-                        MarkPosition(posW, posD, value, value, false);
-                    }
-                }
+                int posW = countW * cellCols + cellW;
+                int posD = countD * cellRows + cellD;
+                int value = currentCell.Grid()[cellW, cellD];
+                gridBase[posW, posD] = value;
+                MarkPosition(posW, posD, value, value, false);
             }
         }
+
         Debug.Log("Basic ON");
     }
 
     private void CreateNbrsGrid()
     {
-        for (int countD = 1; countD < depth - 1; countD += 1)
-        {
-            for (int countW = 1; countW < width - 1; countW += 1)
-            {
-                if (gridBase[countW, countD] == 0)
-                {
-                    int nbrCount = NbrCount(gridBase, gridPOI, countW, countD);
 
-                    if (nbrCount == 2)
-                    {
-                        MarkPosition(countW, countD, 4, 1, true);
-                        // MarkPosition(countW, countD, 1, 1, true);
-                    }
+        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        {
+            if (gridBase[countW, countD] == 0)
+            {
+                int nbrCount = NbrCount(gridBase, gridPOI, countW, countD);
+
+                if (nbrCount == 2)
+                {
+                    MarkPosition(countW, countD, 4, 1, true);
+                    // MarkPosition(countW, countD, 1, 1, true);
                 }
             }
         }
+
+        // for (int countD = 1; countD < depth - 1; countD += 1)
+        // {
+        //     for (int countW = 1; countW < width - 1; countW += 1)
+        //     {
+        //         if (gridBase[countW, countD] == 0)
+        //         {
+        //             int nbrCount = NbrCount(gridBase, gridPOI, countW, countD);
+
+        //             if (nbrCount == 2)
+        //             {
+        //                 MarkPosition(countW, countD, 4, 1, true);
+        //                 // MarkPosition(countW, countD, 1, 1, true);
+        //             }
+        //         }
+        //     }
+        // }
         Debug.Log("Nbrs ON");
     }
 
@@ -286,13 +295,9 @@ public class MapController : MonoBehaviour
         {
             Debug.Log($"sq: {square.w}/{square.d}");
 
-            // DBG coloring
-            for (int countW = 0; countW < squarePattern.GetLength(0); countW++)
+            foreach ((int countW, int countD) in Iterator.Iteration(squarePattern.GetLength(0), squarePattern.GetLength(0)))
             {
-                for (int countD = 0; countD < squarePattern.GetLength(1); countD++)
-                {
-                    MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
-                }
+                MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
             }
         }
 
@@ -404,27 +409,25 @@ public class MapController : MonoBehaviour
         int depth = gridElements.GetLength(1);
 
         gridElements = new Transform[width, depth];
-        for (int countD = 0; countD < depth; countD += 1)
+
+        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
         {
-            for (int countW = 0; countW < width; countW += 1)
+            Transform obj;
+            if (finalGrid[countW, countD] == 1)
             {
-                Transform obj;
-                if (finalGrid[countW, countD] == 1)
-                {
-                    obj = mapElements[1];
-                }
-                else
-                {
-                    obj = mapElements[0];
-                }
-                // positionY = number of cells right * cell width + number of indices in the cell
-                if (obj != null)
-                {
-                    int positionX = countW;
-                    int positionY = countD;
-                    gridElements[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), Quaternion.identity);
-                    gridElements[positionX, positionY].parent = mapHolder;
-                }
+                obj = mapElements[1];
+            }
+            else
+            {
+                obj = mapElements[0];
+            }
+            // positionY = number of cells right * cell width + number of indices in the cell
+            if (obj != null)
+            {
+                int positionX = countW;
+                int positionY = countD;
+                gridElements[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), Quaternion.identity);
+                gridElements[positionX, positionY].parent = mapHolder;
             }
         }
     }
@@ -434,28 +437,23 @@ public class MapController : MonoBehaviour
         Vector3 center = new Vector3(posW, 0, posD);
         Vector3 position = new Vector3(0, 0, 0);
         // iterate the vicinity of the splotch center
-        for (int countW = posW - mag - splotchRimWidth; countW <= posW + mag + splotchRimWidth; countW += 1)
+
+        foreach ((int countW, int countD) in Iterator.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+                                                                        posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
         {
-            for (int countD = posD - mag - splotchRimWidth; countD <= posD + mag + splotchRimWidth; countD += 1)
+            position = new Vector3(countW, 0, countD);
+            // if it is on the rim
+            if ((GetDistance(position, center) >= (float)mag) &&
+            ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
             {
-                if ((countW > 2) && (countW < width - 2) &&
-                    (countD > 2) && (countD < depth - 2))
+                if (gridBase[countW, countD] == 1) // if there is a block
                 {
-                    position = new Vector3(countW, 0, countD);
-                    // if it is on the rim
-                    if ((GetDistance(position, center) >= (float)mag) &&
-                    ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
-                    {
-                        if (gridBase[countW, countD] == 1) // if there is a block
-                        {
-                            MarkPosition(countW, countD, 3, 1, true); // mark splotch rim
-                        }
-                    }
-                    else if ((GetDistance(position, center) < mag)) // if it is inside the radius
-                    {
-                        MarkPosition(countW, countD, 0, 0, false); // empty splotch radius
-                    }
+                    MarkPosition(countW, countD, 3, 1, true); // mark splotch rim
                 }
+            }
+            else if ((GetDistance(position, center) < mag)) // if it is inside the radius
+            {
+                MarkPosition(countW, countD, 0, 0, false); // empty splotch radius
             }
         }
 
@@ -471,25 +469,21 @@ public class MapController : MonoBehaviour
         Palette palette = FindObjectOfType<Palette>();
 
         // Iterate elements grid
-        for (int countW = 0; countW < width; countW += 1)
+
+        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
         {
-            for (int countD = 0; countD < depth; countD += 1)
-            {
-                gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[gridTypes[countW, countD]];
-            }
+            gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[gridTypes[countW, countD]];
         }
     }
 
     private int[,] OverlayGrids(int[,] baseGrid, int[,] diffGrid)
     {
-        for (int countD = 0; countD < depth; countD += 1)
+
+        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
         {
-            for (int countW = 0; countW < width; countW += 1)
+            if (diffGrid[countW, countD] != 2)
             {
-                if (diffGrid[countW, countD] != 2)
-                {
-                    baseGrid[countW, countD] = diffGrid[countW, countD];
-                }
+                baseGrid[countW, countD] = diffGrid[countW, countD];
             }
         }
 
@@ -584,13 +578,12 @@ public class MapController : MonoBehaviour
     private int[,] CopyGrid(int[,] origin)
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
-        for (int countA = 0; countA < origin.GetLength(0); countA++)
+
+        foreach ((int countA, int countB) in Iterator.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
-            for (int countB = 0; countB < origin.GetLength(1); countB++)
-            {
-                target[countA, countB] = origin[countA, countB];
-            }
+            target[countA, countB] = origin[countA, countB];
         }
+
         return target;
     }
 
@@ -620,13 +613,12 @@ public class MapController : MonoBehaviour
     private int[,] FillGrid(int[,] origin, int value)
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
-        for (int countA = 0; countA < origin.GetLength(0); countA++)
+
+        foreach ((int countA, int countB) in Iterator.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
-            for (int countB = 0; countB < origin.GetLength(1); countB++)
-            {
-                target[countA, countB] = value;
-            }
+            target[countA, countB] = value;
         }
+
         return target;
     }
 
