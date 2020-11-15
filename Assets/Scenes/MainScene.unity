@@ -265,7 +265,7 @@ MonoBehaviour:
   cellCols: 16
   cellRows: 8
   cellMin: 10
-  cellMax: 20
+  cellMax: 18
   splotchNum: 5
   splotchSize: 10
   splotchRimWidth: 1
@@ -424,7 +424,8 @@ MonoBehaviour:
   playerTwo: {fileID: 701514472824769938}
   floor: {fileID: 303587015}
   spawnPoints: {fileID: 245760760}
-  minFreeNbrs: 3
+  minFreeNbrsOrt: 4
+  minFreeNbrsDia: 4
   padding: 4
 --- !u!4 &682567330
 Transform:

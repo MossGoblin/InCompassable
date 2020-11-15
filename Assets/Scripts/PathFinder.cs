@@ -14,7 +14,8 @@ public class PathFinder : MonoBehaviour
     public MapController floor;
     public Transform spawnPoints;
 
-    public int minFreeNbrs = 3;
+    public int minFreeNbrsOrt = 4;
+    public int minFreeNbrsDia = 0;
     public int padding = 2;
 
     // Init lists
@@ -218,7 +219,8 @@ public class PathFinder : MonoBehaviour
         }
 
         // count free nbrs
-        int freeNbrs = 0;
+        int freeNbrsOrt = 0;
+        int freeNbrsDia = 0;
         int[] pos = new int[4] { 0, 1, 0, -1 };
         for (int count = 0; count < 4; count += 1)
         {
@@ -239,10 +241,22 @@ public class PathFinder : MonoBehaviour
                 continue;
             }
 
-            freeNbrs += 1;
+            freeNbrsOrt += 1;
         }
 
-        if (freeNbrs >= minFreeNbrs)
+        // FIXME diagonal nbrs
+        for (int countW = -1; countW < 2; countW += 2)
+        {
+            for (int countD = -1; countD < 2; countD += 2)
+            {
+                if (floor.finalGrid[width + countW, depth + countD] == 1)
+                {
+                    freeNbrsDia += 1;
+                }
+            }
+        }
+
+        if (freeNbrsOrt >= minFreeNbrsOrt && freeNbrsDia >= minFreeNbrsDia)
         {
             return true;
         }

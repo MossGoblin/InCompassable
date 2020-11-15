@@ -295,10 +295,11 @@ public class MapController : MonoBehaviour
         {
             Debug.Log($"sq: {square.w}/{square.d}");
 
-            foreach ((int countW, int countD) in Iterator.Iteration(squarePattern.GetLength(0), squarePattern.GetLength(0)))
-            {
-                MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
-            }
+            MarkArea(square.w, square.d, squarePattern, 4, 0, 1, 2, true, false);
+            // foreach ((int countW, int countD) in Iterator.Iteration(squarePattern.GetLength(0), squarePattern.GetLength(0)))
+            // {
+            //     MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
+            // }
         }
 
         // DBG Duplicate for debugging
@@ -355,12 +356,26 @@ public class MapController : MonoBehaviour
         // ColorizeGrid();
     }
 
+    private void MarkArea(int posW, int posD, int[,] pattern, int typeOne, int typeTwo, int objOne, int objTwo, bool poiOne, bool poiTwo)
+    {
+        foreach ((int countW, int countD) in Iterator.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        {
+            if (pattern[countW, countD] == 1)
+            {
+                MarkPosition(posW + countW, posD + countD, typeOne, objOne, poiOne);
+            }
+            else
+            {
+                MarkPosition(posW + countW, posD + countD, typeTwo, objTwo, poiTwo);
+            }
+        }
+    }
+
 
     private void CollapseGrids()
     {
         finalGrid = CopyGrid(gridBase);
         finalGrid = OverlayGrids(finalGrid, gridDiff);
-        Debug.Log("(grids)");
     }
 
     private void CreateBordersGrid()
