@@ -274,7 +274,7 @@ MonoBehaviour:
   visionRange: 0
   visibilityDistance: 10
   maxPointDeviation: 0.45
-  mode: 2
+  mode: 3
 --- !u!4 &303587016
 Transform:
   m_ObjectHideFlags: 0

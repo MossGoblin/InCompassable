@@ -72,9 +72,12 @@ public class MapController : MonoBehaviour
     }
     private void HandleInput()
     {
+        // HERE INPUT
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
-        //     ClumpSquares();
+        //     CreateNbrsGrid();
+        //     CollapseGrids();
+        //     ColorizeGrid();
         // }
     }
     public void SetUpMode()
@@ -125,23 +128,25 @@ public class MapController : MonoBehaviour
         X. place borders
         */
 
+        // HERE Grid Init
         InitGrids();
 
         // 1.
         CreateBasicGrid();
 
         // 5.
-        // CreateBordersGrid();
+        CreateBordersGrid();
 
         // 2.
-        CreateNbrsGrid();
+        //CreateNbrsGrid();
 
         // 4.
         CollapseGrids();
-        ClumpSquares(); // TODO Clump squares
+        MarkPatterns();
+        ClumpSquares(); // HERE Clump squares
 
         // 3.
-        // CreateSplotches();
+        CreateSplotches();
 
         // 6.
         CollapseGrids();
@@ -221,20 +226,25 @@ public class MapController : MonoBehaviour
         {
             for (int countW = 1; countW < width - 1; countW += 1)
             {
-                int nbrCount = gridBase[countW, countD - 1] +
-                               gridBase[countW, countD + 1] +
-                               gridBase[countW - 1, countD] +
-                               gridBase[countW + 1, countD];
-
-                if (nbrCount == 2)
+                if (gridBase[countW, countD] == 0)
                 {
-                    MarkPosition(countW, countD, 1, 1, true);
+                    int nbrCount = NbrCount(gridBase, gridPOI, countW, countD);
+
+                    if (nbrCount == 2)
+                    {
+                        MarkPosition(countW, countD, 4, 1, true);
+                        // MarkPosition(countW, countD, 1, 1, true);
+                    }
                 }
             }
         }
         Debug.Log("Nbrs ON");
     }
 
+    private void MarkPatterns()
+    {
+        CollapseGrids(); // HERE expand collapse
+    }
     private void CreateSplotches()
     {
 
@@ -248,7 +258,7 @@ public class MapController : MonoBehaviour
         {
             int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
             int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
-            // DBG TRYOUTS
+            // DBG Splotch Size
             // int splotchMagnitude = splotchSize;
             int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
             PlaceSplotch(posW, posD, splotchMagnitude);
@@ -271,7 +281,6 @@ public class MapController : MonoBehaviour
 
         List<(int, int)> squarePositions = PatternMapper.FindPattern(workingGrid, squarePattern);
 
-        // DBG LOG DUMP
         Debug.Log($"Squares: {squarePositions.Count}");
         foreach ((int w, int d) square in squarePositions)
         {
@@ -300,13 +309,11 @@ public class MapController : MonoBehaviour
 
         // List<(int, int)> arcPositionsOne = PatternMapper.FindPattern(workingGrid, arcPatternOne);
 
-        // // DBG LOG DUMP
         // Debug.Log($"Arcs One: {arcPositionsOne.Count}");
         // foreach ((int w, int d) square in arcPositionsOne)
         // {
         //     // Debug.Log($"ar: {square.w}/{square.d}");
 
-        //     // DBG coloring
         //     for (int countW = 0; countW < arcPatternOne.GetLength(0); countW++)
         //     {
         //         for (int countD = 0; countD < arcPatternOne.GetLength(1); countD++)
@@ -325,13 +332,11 @@ public class MapController : MonoBehaviour
 
         // List<(int, int)> arcPositionsTwo = PatternMapper.FindPattern(workingGrid, arcPatternTwo);
 
-        // // DBG LOG DUMP
         // Debug.Log($"Arcs Two: {arcPositionsOne.Count}");
         // foreach ((int w, int d) square in arcPositionsTwo)
         // {
         //     // Debug.Log($"ar: {square.w}/{square.d}");
 
-        //     // DBG coloring
         //     for (int countW = 0; countW < arcPatternTwo.GetLength(0); countW++)
         //     {
         //         for (int countD = 0; countD < arcPatternTwo.GetLength(1); countD++)
@@ -465,7 +470,7 @@ public class MapController : MonoBehaviour
         // Get library and palette
         Palette palette = FindObjectOfType<Palette>();
 
-        // Iterate type grid
+        // Iterate elements grid
         for (int countW = 0; countW < width; countW += 1)
         {
             for (int countD = 0; countD < depth; countD += 1)
@@ -623,7 +628,51 @@ public class MapController : MonoBehaviour
             }
         }
         return target;
-
     }
 
+    private int NbrCount(int[,] grid, int posW, int posD)
+    {
+        int nbrs = 0;
+        if (grid[posW - 1, posD] == 1)
+        {
+            nbrs++;
+        }
+        if (grid[posW, posD + 1] == 1)
+        {
+            nbrs++;
+        }
+        if (grid[posW + 1, posD] == 1)
+        {
+            nbrs++;
+        }
+        if (grid[posW, posD - 1] == 1)
+        {
+            nbrs++;
+        }
+
+        return nbrs;
+    }
+
+    private int NbrCount(int[,] grid, int[,] poiGrid, int posW, int posD)
+    {
+        int nbrs = 0;
+        if ((grid[posW - 1, posD] == 1) && (poiGrid[posW - 1, posD] == 0))
+        {
+            nbrs++;
+        }
+        if ((grid[posW, posD + 1] == 1) && (poiGrid[posW, posD + 1] == 0))
+        {
+            nbrs++;
+        }
+        if ((grid[posW + 1, posD] == 1) && (poiGrid[posW + 1, posD] == 0))
+        {
+            nbrs++;
+        }
+        if ((grid[posW, posD - 1] == 1) && (poiGrid[posW, posD - 1] == 0))
+        {
+            nbrs++;
+        }
+
+        return nbrs;
+    }
 }
