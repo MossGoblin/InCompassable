@@ -248,6 +248,7 @@ MonoBehaviour:
   seed: 0
   rndMin: 0.05
   rndMax: 0.25
+  decrement: 0.05
   numberOfBiomes: 5
   colors:
   - {r: 1, g: 0, b: 0, a: 0}
