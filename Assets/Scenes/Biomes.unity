@@ -242,20 +242,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2501dae59548ca049955d5933a603d89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 25
-  depth: 12
+  width: 64
+  depth: 32
   useSeed: 0
-  seed: 0
+  seed: 117273
   rndMin: 0.05
   rndMax: 0.25
-  decrement: 0.05
+  decrement: 0.01
   numberOfBiomes: 5
   colors:
   - {r: 1, g: 0, b: 0, a: 0}
   - {r: 0.07132578, g: 0, b: 1, a: 0}
   - {r: 0.017205596, g: 1, b: 0, a: 0}
-  - {r: 1, g: 0, b: 0.79446316, a: 0}
+  - {r: 1, g: 0, b: 0.5392647, a: 0}
   - {r: 1, g: 0.8795767, b: 0, a: 0}
+  - {r: 0.6226415, g: 0.34051064, b: 0.026432883, a: 0}
+  - {r: 0.69911706, g: 0.28595585, b: 0.9622642, a: 0}
   holder: {fileID: 1064731275}
   basicTile: {fileID: 6286642121233564808, guid: 170626303a7aa164e86315a051fe7470,
     type: 3}
@@ -380,7 +382,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1821016345}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 12, y: 5.5, z: -12}
+  m_LocalPosition: {x: 30, y: 15, z: -35}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

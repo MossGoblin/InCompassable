@@ -25,13 +25,13 @@ public class GridCreator : MonoBehaviour
     public Transform basicTile;
 
     private float[,] gridRnd;
-    private Transform[,] gridObj;
     private int[,] gridBiomes;
+    private Transform[,] gridObj;
 
     // Flooding
     List<Vector3> objList;
     // Tiles to be checked
-    Dictionary<int, Stack<Vector3>> tilesToCheck;
+    Dictionary<int, Queue<Vector3>> borders;
 
     // Claimed tiles
     int[,] tilesChecked;
@@ -115,77 +115,73 @@ public class GridCreator : MonoBehaviour
     private void FloodGrid()
     {
 
-        threshold = (rndMin + rndMax) / 2;
+        float threshold = (rndMin + rndMax) / 2;
 
-        bool checking = true;
-
-        tilesToCheck = new Dictionary<int, Stack<Vector3>>();
-        tilesChecked = new int[width, depth];
-        // put the biome seeds in the queue
+        // create separate checklists for each biome
+        borders = new Dictionary<int, Queue<Vector3>>();
         for (int count = 0; count < numberOfBiomes; count++)
         {
-            tilesToCheck.Add(count, new Stack<Vector3>());
-            tilesToCheck[count].Push(objList[count]);
+            Queue<Vector3> queue = new Queue<Vector3>();
+            queue.Enqueue(objList[count]);
+            borders.Add(count, queue);
         }
 
-        int dbgCount = 0;
+        // iterate floodpoints
+        // for each - make one full run of the border
+        bool flooding = true;
 
-        while (checking)
+        int markedTiles = 0;
+        int cycleCounter = 0;
+        while (flooding)
         {
-            int markedTiles = 0;
-
-            // iterate all biomes
-            for (int count = 0; count < numberOfBiomes; count++)
+            // cycle floodpoints
+            for (int biomeNumber = 0; biomeNumber < numberOfBiomes; biomeNumber++)
             {
-                // pull next tile
-                if (tilesToCheck[count].Count == 0)
-                {
-                    Debug.Log($"Dict {count} empty; checked {markedTiles}");
-                    continue;
-                }
-                Vector3 currentTile = tilesToCheck[count].Pop();
+                // run full cycle from the border
+                int borderSize = borders[biomeNumber].Count;
 
-                // enqueue unckecked nbrs
-                List<Vector3> nbrs = GetNbrs(currentTile);
-                foreach (Vector3 nbr in nbrs)
+                for (int borderCount = 0; borderCount < borderSize; borderCount++)
                 {
-                    tilesToCheck[count].Push(nbr);
-                }
+                    // safety
+                    if (borders[biomeNumber].Count <= 0)
+                    {
+                        Debug.Log($"Biome {biomeNumber} is done at {markedTiles}");
+                    }
 
-                // check the current tile
-                if (gridRnd[(int)currentTile.x, (int)currentTile.z] >= threshold)
-                {
-                    // If the tile is unsuitable - adjust and add back to the queue
-                    gridRnd[(int)currentTile.x, (int)currentTile.z] = Mathf.Min(gridRnd[(int)currentTile.x, (int)currentTile.z], gridRnd[(int)currentTile.x, (int)currentTile.z]- decrement);
-                    tilesToCheck[count].Push(currentTile);
-                }
-                else
-                {
-                    gridBiomes[(int)currentTile.x, (int)currentTile.z] = count + 1;
-                    // DBG InProcess coloring
-                    gridObj[(int)currentTile.x, (int)currentTile.z].GetChild(0).GetComponent<MeshRenderer>().material.color = colors[count];
-                    markedTiles++;
+                    // extract
+                    Vector3 tile = borders[biomeNumber].Dequeue();
+
+                    // process tile
+                    if (gridRnd[(int)tile.x, (int)tile.z] <= threshold)
+                    {
+                        gridBiomes[(int)tile.x, (int)tile.z] = biomeNumber;
+                        gridObj[(int)tile.x, (int)tile.z].GetChild(0).GetComponent<MeshRenderer>().material.color = colors[biomeNumber];
+                        markedTiles ++;
+                    }
+                    else
+                    {
+                        // adjust tile and return to queue
+                        gridRnd[(int)tile.x, (int)tile.z] -= decrement;
+                        borders[biomeNumber].Enqueue(tile);
+                    }
+
+                    // fill in nbrs
+                    List<Vector3> nbrs = GetNbrs(tile);
+                    foreach (Vector3 nbr in nbrs)
+                    {
+                        borders[biomeNumber].Enqueue(nbr);
+                    }
                 }
             }
+            
+            cycleCounter++;
 
-            int empty = 0;
-            for (int count = 0; count < tilesToCheck.Count; count ++)
+            // check for cycle break
+            if (markedTiles >= (width * depth * 15))
             {
-                if (tilesToCheck[0].Count <= 0)
-                {
-                    empty++;
-                    checking = false;
-                }
+                Debug.Log($"Grace at {markedTiles}/{cycleCounter}");
+                flooding = false;
             }
-
-            if (dbgCount > (width * depth * 10))
-            {
-                Debug.Log($"Cycled out at {dbgCount}");
-                break;
-            }
-
-            dbgCount++;
-
         }
     }
 
@@ -196,6 +192,7 @@ public class GridCreator : MonoBehaviour
         {
             for (int countD = -1; countD < 2; countD++)
             {
+                // if (countW != 0 && countD != 0)
                 if (Mathf.Abs(countW) + Mathf.Abs(countD) == 1)
                 {
                     if (FreeTile(countW + (int)tile.x, countD + (int)tile.z))
@@ -208,6 +205,7 @@ public class GridCreator : MonoBehaviour
 
         return result;
     }
+
     private bool FreeTile(int posW, int posD)
     {
         if ((posW < 0) ||
@@ -220,7 +218,7 @@ public class GridCreator : MonoBehaviour
 
         for (int count = 0; count < numberOfBiomes; count++)
         {
-            if (tilesToCheck[count].Contains(new Vector3(posW, 0, posD)))
+            if (borders[count].Contains(new Vector3(posW, 0, posD)))
             {
                 return false;
             }
