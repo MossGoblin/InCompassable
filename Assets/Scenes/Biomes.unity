@@ -246,9 +246,9 @@ MonoBehaviour:
   depth: 32
   useSeed: 0
   seed: 117273
-  rndMin: 0.05
-  rndMax: 0.25
-  decrement: 0.01
+  rndMin: 0.005
+  rndMax: 1
+  decrement: 0.005
   numberOfBiomes: 5
   colors:
   - {r: 1, g: 0, b: 0, a: 0}

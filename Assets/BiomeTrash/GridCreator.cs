@@ -156,7 +156,7 @@ public class GridCreator : MonoBehaviour
                     {
                         gridBiomes[(int)tile.x, (int)tile.z] = biomeNumber;
                         gridObj[(int)tile.x, (int)tile.z].GetChild(0).GetComponent<MeshRenderer>().material.color = colors[biomeNumber];
-                        markedTiles ++;
+                        markedTiles++;
                     }
                     else
                     {
@@ -166,14 +166,14 @@ public class GridCreator : MonoBehaviour
                     }
 
                     // fill in nbrs
-                    List<Vector3> nbrs = GetNbrs(tile);
+                    List<Vector3> nbrs = GetNbrs(tile, biomeNumber);
                     foreach (Vector3 nbr in nbrs)
                     {
                         borders[biomeNumber].Enqueue(nbr);
                     }
                 }
             }
-            
+
             cycleCounter++;
 
             // check for cycle break
@@ -185,7 +185,7 @@ public class GridCreator : MonoBehaviour
         }
     }
 
-    private List<Vector3> GetNbrs(Vector3 tile)
+    private List<Vector3> GetNbrs(Vector3 tile, int biomeNumber)
     {
         List<Vector3> result = new List<Vector3>();
         for (int countW = -1; countW < 2; countW++)
@@ -195,7 +195,7 @@ public class GridCreator : MonoBehaviour
                 // if (countW != 0 && countD != 0)
                 if (Mathf.Abs(countW) + Mathf.Abs(countD) == 1)
                 {
-                    if (FreeTile(countW + (int)tile.x, countD + (int)tile.z))
+                    if (FreeTile(countW + (int)tile.x, countD + (int)tile.z, biomeNumber))
                     {
                         result.Add(new Vector3(countW + (int)tile.x, 0, countD + (int)tile.z));
                     }
@@ -206,7 +206,7 @@ public class GridCreator : MonoBehaviour
         return result;
     }
 
-    private bool FreeTile(int posW, int posD)
+    private bool FreeTile(int posW, int posD, int biomeNumber)
     {
         if ((posW < 0) ||
             (posW >= width) ||
@@ -216,13 +216,18 @@ public class GridCreator : MonoBehaviour
             return false;
         }
 
-        for (int count = 0; count < numberOfBiomes; count++)
+        if (borders[biomeNumber].Contains(new Vector3(posW, 0, posD)))
         {
-            if (borders[count].Contains(new Vector3(posW, 0, posD)))
-            {
-                return false;
-            }
+            return false;
         }
+
+        // for (int count = 0; count < numberOfBiomes; count++)
+        // {
+        //     if (borders[count].Contains(new Vector3(posW, 0, posD)))
+        //     {
+        //         return false;
+        //     }
+        // }
 
         if (gridBiomes[posW, posD] > 0)
         {
