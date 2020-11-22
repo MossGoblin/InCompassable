@@ -264,8 +264,8 @@ MonoBehaviour:
   floorCellDepth: 8
   cellCols: 16
   cellRows: 8
-  cellMin: 10
-  cellMax: 18
+  cellMin: 8
+  cellMax: 15
   splotchNum: 5
   splotchSize: 10
   splotchRimWidth: 1
@@ -425,7 +425,7 @@ MonoBehaviour:
   floor: {fileID: 303587015}
   spawnPoints: {fileID: 245760760}
   minFreeNbrsOrt: 4
-  minFreeNbrsDia: 4
+  minFreeNbrsDia: 2
   padding: 4
 --- !u!4 &682567330
 Transform:

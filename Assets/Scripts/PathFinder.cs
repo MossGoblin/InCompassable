@@ -31,7 +31,6 @@ public class PathFinder : MonoBehaviour
     {
         // Select an available point for starting the flood
         Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
-        //Vector3 floodPoint = SelectAvailablePoint(grid, paddingWidthLeft, paddingWidthRight, paddingDepthLeft, paddingDepthRight);
 
         // Floodfill the plane
         List<Vector3> floodPlane = FloodThePlane(grid, floodPoint);
@@ -62,7 +61,7 @@ public class PathFinder : MonoBehaviour
 
         // Select random starting poins
         Vector3 leftSeedPoint = new Vector3(floodGrid.GetLength(0) / 4, 0, floodGrid.GetLength(1) / 2);
-        Vector3 rightSeedpoint = new Vector3(floodGrid.GetLength(0) / 4 * 3, 0, floodGrid.GetLength(1) / 2);
+        Vector3 rightSeedPoint = new Vector3(floodGrid.GetLength(0) / 2, 0, floodGrid.GetLength(1) / 4) * 3;
 
         Vector3 deviationLeft = Random.insideUnitCircle.normalized;
         Vector3 deviationRight = Random.insideUnitCircle.normalized;
@@ -77,7 +76,7 @@ public class PathFinder : MonoBehaviour
         Vector3 randomRight = randomRightNormal * randomRightMagnitude;
 
         leftSeedPoint = ScoutAround(floodGrid, leftSeedPoint + new Vector3(randomLeft.x, 0, randomLeft.z));
-        rightSeedpoint = ScoutAround(floodGrid, rightSeedpoint + new Vector3(randomRight.x, 0, randomRight.z));
+        rightSeedPoint = ScoutAround(floodGrid, rightSeedPoint + new Vector3(randomRight.x, 0, randomRight.z));
 
 
         // Select a random point for left start
@@ -92,10 +91,17 @@ public class PathFinder : MonoBehaviour
         //start.parent = spawnPoints;
 
         // Transform end = Instantiate(playerTwo, rightSeedpoint, Quaternion.identity);
-        playerTwo.transform.position = rightSeedpoint;
+        playerTwo.transform.position = rightSeedPoint;
         playerTwo.gameObject.SetActive(true);
         //end.parent = spawnPoints;
+        
+        Debug.Log($"SeedPoint One at: {leftSeedPoint}");
+        Debug.Log($"SeedPoint One at: {rightSeedPoint}");
+        Debug.Log($"Player One at: {playerOne.transform.position.x} / {playerOne.transform.position.z}");
+        Debug.Log($"Player Two at: {playerTwo.transform.position.x} / {playerTwo.transform.position.z}");
 
+        // TODO include a check for same position
+        // if the position of the players is the same - there are no 2 different viable starting positions - restart the whole map
     }
 
 
