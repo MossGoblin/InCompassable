@@ -74,5 +74,16 @@ namespace ToolBox
 
             return loop;
         }
+
+        static public int[,] GenerateGridWithFill(int width, int depth, int fill)
+        {
+            int[,] result = new int[width, depth];
+            foreach ((int countW, int countD) in Iteration(width, depth))
+            {
+                result[countW, countD] = fill;
+            }
+
+            return result;
+        }
     }
 }
