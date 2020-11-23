@@ -5,7 +5,6 @@ using UnityEngine;
 
 public static class Patterns
 {
-
     public enum Pattern
     {
         Crosses,
