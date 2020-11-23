@@ -257,8 +257,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapElements:
   - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
-  - {fileID: 4225563779539711396, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
-  - {fileID: 4898304532451137367, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
+  - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
+  - {fileID: 7274024307760784337, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
   mapHolder: {fileID: 2123388022}
   pathFinder: {fileID: 682567330}
   floorCellWidth: 8

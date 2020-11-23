@@ -429,12 +429,14 @@ public class MapController : MonoBehaviour
             int positionX = countW;
             int positionY = countD;
             Quaternion rotation = Quaternion.identity;
+            Vector3 position = new Vector3(positionX, 0, positionY);
 
-            // if (finalGrid[countW, countD] != 0)
-            // {
-            //     rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
-            // }
-            gridElements[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), rotation);
+            if (finalGrid[countW, countD] != 0)
+            {
+                position = new Vector3(positionX + 0.5f, 0, positionY + 0.5f);
+                obj.GetChild(0).transform.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
+            }
+            gridElements[positionX, positionY] = Instantiate(obj, position, rotation);
             gridElements[positionX, positionY].parent = mapHolder;
         }
         Debug.Log("Materialize");
