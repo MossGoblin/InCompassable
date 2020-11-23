@@ -6,9 +6,11 @@ public class Palette : MonoBehaviour
 {
     //Splotch Center
     public Dictionary<int, Color> palette = new Dictionary<int, Color>();
+    public Dictionary<int, Color> biomePalette = new Dictionary<int, Color>();
 
     public Palette()
     {
+        // Object palette
         palette = new Dictionary<int, Color>();
         palette.Add(0, new Color(0.1f, 0.5f, 0.0f)); // empty
         palette.Add(1, new Color(0.3f, 0.3f, 0.8f)); // blocks

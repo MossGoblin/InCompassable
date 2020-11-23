@@ -275,6 +275,13 @@ MonoBehaviour:
   visibilityDistance: 10
   maxPointDeviation: 0.45
   mode: 3
+  biomesCount: 5
+  biomeColors:
+  - {r: 1, g: 0, b: 0, a: 0}
+  - {r: 0, g: 0.0064702034, b: 1, a: 0}
+  - {r: 1, g: 0, b: 0.89338493, a: 0}
+  - {r: 1, g: 0.9128059, b: 0, a: 0}
+  - {r: 0, g: 1, b: 0.17201257, a: 0}
 --- !u!4 &303587016
 Transform:
   m_ObjectHideFlags: 0
@@ -854,30 +861,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f0bb32775f66d842bbd66c0ad9df8b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  obstacle: {fileID: 2074510602771288458, guid: 85282cbafcc41b04f80829394c4567e5,
-    type: 3}
-  empty: {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
-  tileHolder: {fileID: 2123388022}
-  pathFinder: {fileID: 682567330}
-  basicGrid: 1
-  fillInBorders: 1
-  processNeighbours: 1
-  createSplotches: 1
-  showEmpties: 1
-  initSpawns: 1
-  visionOpt: 1
-  floorCellWidth: 8
-  floorCellDepth: 8
-  cellCols: 16
-  cellRows: 8
-  cellMin: 15
-  cellMax: 20
-  splotchNum: 5
-  splotchSize: 8
-  maxPointDeviation: 0.353
-  visibilityDistance: 10
-  playerOne: {fileID: 701514473614629952}
-  playerTwo: {fileID: 701514472824769938}
 --- !u!4 &1619756426
 Transform:
   m_ObjectHideFlags: 0

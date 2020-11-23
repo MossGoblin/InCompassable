@@ -44,6 +44,10 @@ public class MapController : MonoBehaviour
     [Header("Checks")]
     public int mode;
 
+    [Header("Biomes")]
+    public int biomesCount;
+    private int[,] gridBiomes;
+    [SerializeField] Color[] biomeColors;
     // Grids
     private Cell[,] gridCells;
     private int[,] gridBase;
@@ -52,6 +56,7 @@ public class MapController : MonoBehaviour
     public Transform[,] gridElements;
     private int[,] gridPOI;
     private int[,] gridClumps;
+
 
     // 0 - do not change
     // 1 - remove
@@ -155,8 +160,11 @@ public class MapController : MonoBehaviour
         // Mat.
         MaterializeFloor();
 
+        CreateBiomes();
+
         // Color
-        ColorizeGrid();
+        ColorizeGrid(gridBiomes);
+        // ColorizeGrid(gridTypes);
 
     }
 
@@ -195,6 +203,9 @@ public class MapController : MonoBehaviour
 
         // Clumps grid - positions taken by non-basic objects
         gridClumps = new int[width, depth];
+
+        // Biome identities grid
+        gridBiomes = new int[width, depth];
 
     }
     private void CreateBasicGrid()
@@ -272,10 +283,10 @@ public class MapController : MonoBehaviour
 
             List<(int, int)> patternPositions = PatternMapper.FindPattern(gridClumps, pattern);
 
-            Debug.Log($"Patterns: {patternPositions.Count}");
+            // Debug.Log($"Patterns: {patternPositions.Count}");
             foreach ((int w, int d) position in patternPositions)
             {
-                Debug.Log($"pattern: {position.w}/{position.d}");
+                // Debug.Log($"pattern: {position.w}/{position.d}");
 
                 MarkArea(position.w, position.d, pattern, 4, 0, 1, 2, true, false);
             }
@@ -401,7 +412,20 @@ public class MapController : MonoBehaviour
         MarkPosition(posW, posD, 2, 1, true); // mark splotch center
     }
 
-    private void ColorizeGrid()
+    private void CreateBiomes()
+    {
+        List<Vector2> centroidList = new List<Vector2>();
+                for (int count = 0; count < biomesCount; count++)
+        {
+            int posW = Random.Range(0, width - 1);
+            int posD = Random.Range(0, depth - 1);
+            centroidList.Add(new Vector2(posW, posD));
+        };
+
+        gridBiomes = Voronoi.GenerateRegions(width, depth, centroidList);
+    }
+
+    private void ColorizeGrid(int[,] grid)
     {
         // DBG only while WIP
         // Colorize POI
@@ -413,7 +437,8 @@ public class MapController : MonoBehaviour
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
-            gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[gridTypes[countW, countD]];
+            // gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[grid[countW, countD]];
+            gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = biomeColors[grid[countW, countD]];
         }
     }
 
