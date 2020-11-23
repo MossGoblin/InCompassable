@@ -54,7 +54,7 @@ public class MapMaker : MonoBehaviour
             colors[count] = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
         }
 
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             Vector3 position = new Vector3(countW, 0, countD);
 
@@ -66,7 +66,7 @@ public class MapMaker : MonoBehaviour
 
     private void SplitGrid()
     {
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             float minDistance = float.MaxValue;
             int count = 0;
@@ -94,7 +94,7 @@ public class MapMaker : MonoBehaviour
 
     private void InitGrid()
     {
-        grid = Iterator.GenerateGridWithFill(width, depth, 0);
+        grid = Itr.GenerateGridWithFill(width, depth, 0);
     }
 
     // Update is called once per frame

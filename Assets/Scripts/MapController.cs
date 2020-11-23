@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using ToolBox;
+using Itr = ToolBox.Itr;
 
 public class MapController : MonoBehaviour
 {
@@ -51,6 +51,7 @@ public class MapController : MonoBehaviour
     public int[,] finalGrid;
     public Transform[,] gridElements;
     private int[,] gridPOI;
+    private int[,] gridClumps;
 
     // 0 - do not change
     // 1 - remove
@@ -143,8 +144,7 @@ public class MapController : MonoBehaviour
 
         // 4.
         CollapseGrids();
-        MarkPatterns();
-        ClumpSquares(); // HERE Clump squares
+        MarkPatterns(); // HERE Clump squares
 
         // 3.
         CreateSplotches();
@@ -169,7 +169,7 @@ public class MapController : MonoBehaviour
         // Init cells grid
         gridCells = new Cell[floorCellWidth, floorCellDepth];
 
-        foreach ((int countW, int countD) in Iterator.Iteration(floorCellWidth, floorCellDepth))
+        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
             gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax);
         }
@@ -187,21 +187,24 @@ public class MapController : MonoBehaviour
         gridDiff = new int[width, depth];
         gridDiff = FillGrid(gridDiff, 2); // fill in with 2's -- no change to original grid
 
-        // Init Points Of Interest grid
+        // Init terrain object types grid
         gridTypes = new int[width, depth];
 
         // POI grid
         gridPOI = new int[width, depth];
 
+        // Clumps grid - positions taken by non-basic objects
+        gridClumps = new int[width, depth];
+
     }
     private void CreateBasicGrid()
     {
 
-        foreach ((int countW, int countD) in Iterator.Iteration(floorCellWidth, floorCellDepth))
+        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
             Cell currentCell = gridCells[countW, countD];
 
-            foreach ((int cellW, int cellD) in Iterator.Iteration(cellCols, cellRows))
+            foreach ((int cellW, int cellD) in Itr.Iteration(cellCols, cellRows))
             {
                 int posW = countW * cellCols + cellW;
                 int posD = countD * cellRows + cellD;
@@ -217,7 +220,7 @@ public class MapController : MonoBehaviour
     private void CreateNbrsGrid()
     {
 
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             if (gridBase[countW, countD] == 0)
             {
@@ -225,35 +228,15 @@ public class MapController : MonoBehaviour
 
                 if (nbrCount == 2)
                 {
-                    MarkPosition(countW, countD, 4, 1, true);
-                    // MarkPosition(countW, countD, 1, 1, true);
+                    // MarkPosition(countW, countD, 4, 1, true);
+                    MarkPosition(countW, countD, 1, 1, true);
                 }
             }
         }
 
-        // for (int countD = 1; countD < depth - 1; countD += 1)
-        // {
-        //     for (int countW = 1; countW < width - 1; countW += 1)
-        //     {
-        //         if (gridBase[countW, countD] == 0)
-        //         {
-        //             int nbrCount = NbrCount(gridBase, gridPOI, countW, countD);
-
-        //             if (nbrCount == 2)
-        //             {
-        //                 MarkPosition(countW, countD, 4, 1, true);
-        //                 // MarkPosition(countW, countD, 1, 1, true);
-        //             }
-        //         }
-        //     }
-        // }
         Debug.Log("Nbrs ON");
     }
 
-    private void MarkPatterns()
-    {
-        CollapseGrids(); // HERE expand collapse
-    }
     private void CreateSplotches()
     {
 
@@ -276,89 +259,32 @@ public class MapController : MonoBehaviour
         Debug.Log("Splotches ON");
     }
 
-    private void ClumpSquares()
+    private void MarkPatterns()
     {
-        int[,] workingGrid = CopyGrid(finalGrid);
+        gridClumps = CopyGrid(finalGrid);
 
-        // create pattern for squares
-        Debug.Log("Clumping squares...");
-        int[,] squarePattern = new int[,]
+        Debug.Log($"Marking patterns");
+
+        for (int count = 0; count < Enum.GetNames(typeof(Patterns.Pattern)).Length; count++)
         {
-            {1, 1},
-            {1, 1}
-        };
 
-        List<(int, int)> squarePositions = PatternMapper.FindPattern(workingGrid, squarePattern);
+            int[,] pattern = Patterns.GetType((Patterns.Pattern)count);
 
-        Debug.Log($"Squares: {squarePositions.Count}");
-        foreach ((int w, int d) square in squarePositions)
-        {
-            Debug.Log($"sq: {square.w}/{square.d}");
+            List<(int, int)> patternPositions = PatternMapper.FindPattern(gridClumps, pattern);
 
-            MarkArea(square.w, square.d, squarePattern, 4, 0, 1, 2, true, false);
-            // foreach ((int countW, int countD) in Iterator.Iteration(squarePattern.GetLength(0), squarePattern.GetLength(0)))
-            // {
-            //     MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 4, 2, true);
-            // }
+            Debug.Log($"Patterns: {patternPositions.Count}");
+            foreach ((int w, int d) position in patternPositions)
+            {
+                Debug.Log($"pattern: {position.w}/{position.d}");
+
+                MarkArea(position.w, position.d, pattern, 4, 0, 1, 2, true, false);
+            }
         }
-
-        // DBG Duplicate for debugging
-        // create pattern for squares
-        // int[,] arcPatternOne = new int[,]
-        // {
-        //     {0, 0, 0},
-        //     {0, 1, 0},
-        //     {0, 0, 0},
-        //     {0, 1, 0},
-        //     {0, 0, 0}
-        // };
-
-        // List<(int, int)> arcPositionsOne = PatternMapper.FindPattern(workingGrid, arcPatternOne);
-
-        // Debug.Log($"Arcs One: {arcPositionsOne.Count}");
-        // foreach ((int w, int d) square in arcPositionsOne)
-        // {
-        //     // Debug.Log($"ar: {square.w}/{square.d}");
-
-        //     for (int countW = 0; countW < arcPatternOne.GetLength(0); countW++)
-        //     {
-        //         for (int countD = 0; countD < arcPatternOne.GetLength(1); countD++)
-        //         {
-        //             MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 5, 2, true);
-        //         }
-        //     }
-        // }
-
-        // int[,] arcPatternTwo = new int[,]
-        // {
-        //     {0, 0, 0, 0, 0},
-        //     {0, 1, 0, 1, 0},
-        //     {0, 0, 0, 0, 0}
-        // };
-
-        // List<(int, int)> arcPositionsTwo = PatternMapper.FindPattern(workingGrid, arcPatternTwo);
-
-        // Debug.Log($"Arcs Two: {arcPositionsOne.Count}");
-        // foreach ((int w, int d) square in arcPositionsTwo)
-        // {
-        //     // Debug.Log($"ar: {square.w}/{square.d}");
-
-        //     for (int countW = 0; countW < arcPatternTwo.GetLength(0); countW++)
-        //     {
-        //         for (int countD = 0; countD < arcPatternTwo.GetLength(1); countD++)
-        //         {
-        //             MarkPosition(new Vector3(square.w + countW, 0, square.d + countD), 5, 2, true);
-        //         }
-        //     }
-        // }
-
-
-        // ColorizeGrid();
     }
 
     private void MarkArea(int posW, int posD, int[,] pattern, int typeOne, int typeTwo, int objOne, int objTwo, bool poiOne, bool poiTwo)
     {
-        foreach ((int countW, int countD) in Iterator.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             if (pattern[countW, countD] == 1)
             {
@@ -425,7 +351,7 @@ public class MapController : MonoBehaviour
 
         gridElements = new Transform[width, depth];
 
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             Transform obj;
             if (finalGrid[countW, countD] == 1)
@@ -453,7 +379,7 @@ public class MapController : MonoBehaviour
         Vector3 position = new Vector3(0, 0, 0);
         // iterate the vicinity of the splotch center
 
-        foreach ((int countW, int countD) in Iterator.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
                                                                         posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
         {
             position = new Vector3(countW, 0, countD);
@@ -485,7 +411,7 @@ public class MapController : MonoBehaviour
 
         // Iterate elements grid
 
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[gridTypes[countW, countD]];
         }
@@ -494,7 +420,7 @@ public class MapController : MonoBehaviour
     private int[,] OverlayGrids(int[,] baseGrid, int[,] diffGrid)
     {
 
-        foreach ((int countW, int countD) in Iterator.Iteration(width, depth))
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             if (diffGrid[countW, countD] != 2)
             {
@@ -594,7 +520,7 @@ public class MapController : MonoBehaviour
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
 
-        foreach ((int countA, int countB) in Iterator.Iteration(origin.GetLength(0), origin.GetLength(1)))
+        foreach ((int countA, int countB) in Itr.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
             target[countA, countB] = origin[countA, countB];
         }
@@ -610,6 +536,7 @@ public class MapController : MonoBehaviour
         gridTypes[posW, posD] = type;
         gridPOI[posW, posD] = 1;
         gridDiff[posW, posD] = obj;
+        gridClumps[posW, posD] = 0;
     }
 
     /// <summary>
@@ -623,13 +550,14 @@ public class MapController : MonoBehaviour
         gridTypes[posW, posD] = type;
         gridPOI[posW, posD] = poi ? 1 : 0;
         gridDiff[posW, posD] = obj;
+        gridClumps[posW, posD] = 0;
     }
 
     private int[,] FillGrid(int[,] origin, int value)
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
 
-        foreach ((int countA, int countB) in Iterator.Iteration(origin.GetLength(0), origin.GetLength(1)))
+        foreach ((int countA, int countB) in Itr.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
             target[countA, countB] = value;
         }

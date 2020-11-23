@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public static class PatternMapper
 {
-    public static List<(int, int)> FindPattern(int[,] grid, int[,] pattern)
+    public static List<(int, int)> FindPattern(int[,] gridPositive, int[,] pattern)
     {
         List<(int, int)> result = new List<(int, int)>();
         List<(int, int)> counted = new List<(int, int)>();
@@ -13,8 +13,8 @@ public static class PatternMapper
         // 3. xnor parrent with grid chunk
         // 4. if all is 1 -> record coordinates of leading cell
 
-        int width = grid.GetLength(0);
-        int depth = grid.GetLength(1);
+        int width = gridPositive.GetLength(0);
+        int depth = gridPositive.GetLength(1);
 
         int patternWidth = pattern.GetLength(0);
         int patternDepth = pattern.GetLength(1);
@@ -30,10 +30,10 @@ public static class PatternMapper
                     continue;
                 }
                 // overlay at position
-                bool match = Overlay(grid, pattern, countW, countD, counted);
+                bool match = Overlay(gridPositive, pattern, countW, countD, counted);
                 if (match)
                 {
-                    Mark(grid, pattern, countW, countD, ref counted);
+                    Mark(gridPositive, pattern, countW, countD, ref counted);
                     result.Add((countW, countD));
                 }
             }
@@ -43,13 +43,14 @@ public static class PatternMapper
         return result;
     }
 
-    private static bool Overlay(int[,] grid, int[,] pattern, int posW, int posD, List<(int, int)> counted)
+    private static bool Overlay(int[,] gridPositive, int[,] pattern, int posW, int posD, List<(int, int)> counted)
     {
         for (int countW = 0; countW < pattern.GetLength(0); countW ++)
         {
             for (int countD = 0; countD < pattern.GetLength(1); countD ++)
             {
-                if (counted.Contains((posW + countW, posD + countD)) || grid[posW + countW, posD + countD] != pattern[countW, countD])
+                if (counted.Contains((posW + countW, posD + countD)) || 
+                    gridPositive[posW + countW, posD + countD] != pattern[countW, countD])
                 {
                     return false;
                 }
