@@ -9,6 +9,7 @@ public class MapController : MonoBehaviour
     // Prefabs
     [Header("Prefabs")]
     public List<Transform> mapElements;
+    private Dictionary<Vector3, Patterns.Pattern> massives;
 
     // Refs
     [Header("Refs")]
@@ -48,15 +49,14 @@ public class MapController : MonoBehaviour
     public int biomesCount;
     private int[,] gridBiomes;
     [SerializeField] Color[] biomeColors;
-    // Grids
-    private Cell[,] gridCells;
-    private int[,] gridBase;
-    private int[,] gridTypes;
-    public int[,] finalGrid;
-    public Transform[,] gridElements;
-    private int[,] gridPOI;
-    private int[,] gridClumps;
 
+    // Grids
+    private Cell[,] gridCells; // used for density distrubution
+    private int[,] gridBase; // base grid - only empty and full
+    public int[,] finalGrid; // final grid with all basics and massives
+    public Transform[,] gridElements; // Game Objects for all basics and massives
+    private int[,] gridPOI; // Points of Interest - to be avoided when performing availability checks
+    private int[,] gridMassives; // positions of all special massives
 
     // 0 - do not change
     // 1 - remove
@@ -69,6 +69,7 @@ public class MapController : MonoBehaviour
         // Create the map
         CreateMap();
         // DBG player spawn plug
+        Debug.Log("Placong players");
         PositionPlayers();
     }
 
@@ -156,15 +157,16 @@ public class MapController : MonoBehaviour
 
         // 6.
         CollapseGrids();
+        finalGrid = AddMassives(finalGrid);
 
         // Mat.
         MaterializeFloor();
 
+        // Biomes
         CreateBiomes();
 
         // Color
         ColorizeGrid(gridBiomes);
-        // ColorizeGrid(gridTypes);
 
     }
 
@@ -195,17 +197,16 @@ public class MapController : MonoBehaviour
         gridDiff = new int[width, depth];
         gridDiff = FillGrid(gridDiff, 2); // fill in with 2's -- no change to original grid
 
-        // Init terrain object types grid
-        gridTypes = new int[width, depth];
-
         // POI grid
         gridPOI = new int[width, depth];
 
-        // Clumps grid - positions taken by non-basic objects
-        gridClumps = new int[width, depth];
-
         // Biome identities grid
         gridBiomes = new int[width, depth];
+
+        // Massives to be added to the map
+        gridMassives = new int[width, depth];
+
+        massives = new Dictionary<Vector3, Patterns.Pattern>();
 
     }
     private void CreateBasicGrid()
@@ -261,8 +262,6 @@ public class MapController : MonoBehaviour
         {
             int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
             int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
-            // DBG Splotch Size
-            // int splotchMagnitude = splotchSize;
             int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
             PlaceSplotch(posW, posD, splotchMagnitude);
         }
@@ -272,25 +271,50 @@ public class MapController : MonoBehaviour
 
     private void MarkPatterns()
     {
-        gridClumps = CopyGrid(finalGrid);
+        int[,] gridClumps = CopyGrid(finalGrid);
 
-        Debug.Log($"Marking patterns");
+        Debug.Log($"Marking squares");
 
-        for (int count = 0; count < Enum.GetNames(typeof(Patterns.Pattern)).Length; count++)
+        int[,] pattern = Patterns.Square();
+
+        List<(int, int)> patternPositions = PatternMapper.FindPattern(gridClumps, pattern);
+
+        foreach ((int w, int d) position in patternPositions)
         {
+            Debug.Log($"square: {position.w}/{position.d}");
 
-            int[,] pattern = Patterns.GetType((Patterns.Pattern)count);
-
-            List<(int, int)> patternPositions = PatternMapper.FindPattern(gridClumps, pattern);
-
-            // Debug.Log($"Patterns: {patternPositions.Count}");
-            foreach ((int w, int d) position in patternPositions)
-            {
-                // Debug.Log($"pattern: {position.w}/{position.d}");
-
-                MarkArea(position.w, position.d, pattern, 4, 0, 1, 2, true, false);
-            }
+            MarkArea(position.w, position.d, pattern, 4, 0, 1, 2, true, false);
+            MarkMassive(position.w, position.d, 2, pattern);
         }
+
+        // DBG ALL PATTERNS
+        // for (int count = 0; count < Enum.GetNames(typeof(Patterns.Pattern)).Length; count++)
+        // {
+
+        //     int[,] pattern = Patterns.GetType((Patterns.Pattern)count);
+
+        //     List<(int, int)> patternPositions = PatternMapper.FindPattern(gridClumps, pattern);
+
+        //     // Debug.Log($"Patterns: {patternPositions.Count}");
+        //     foreach ((int w, int d) position in patternPositions)
+        //     {
+        //         // Debug.Log($"pattern: {position.w}/{position.d}");
+
+        //         MarkArea(position.w, position.d, pattern, 4, 0, 1, 2, true, false);
+        //         MarkMassive(position.w, position.d, count + 2, pattern);
+        //     }
+        // }
+    }
+
+    private void MarkMassive(int posW, int posD, int index, int[,] pattern)
+    {
+        // Mark start position of the massive with it's index; the rest - 100
+        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        {
+            gridMassives[posW + countW, posD + countD] = 100;
+        }
+
+        gridMassives[posW, posD] = index;
     }
 
     private void MarkArea(int posW, int posD, int[,] pattern, int typeOne, int typeTwo, int objOne, int objTwo, bool poiOne, bool poiTwo)
@@ -313,6 +337,31 @@ public class MapController : MonoBehaviour
     {
         finalGrid = CopyGrid(gridBase);
         finalGrid = OverlayGrids(finalGrid, gridDiff);
+        // finalGrid = AddMassives(finalGrid);
+        Debug.Log("Collapse grids");
+    }
+
+    private int[,] AddMassives(int[,] finalGrid)
+    {
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        {
+            // check if thespot is to be skipped - 0 on the massive grid
+            // check of there is a massive index at that position
+            // place the index on the spot
+            // or place a spot to be skipped - 100 on the massive grid
+
+            if (gridMassives[countW, countD] == 0)
+            {
+                continue;
+            }
+
+            if (gridMassives[countW, countD] != 0)
+            {
+                finalGrid[countW, countD] = gridMassives[countW, countD];
+            }
+        }
+
+        return finalGrid;
     }
 
     private void CreateBordersGrid()
@@ -349,6 +398,7 @@ public class MapController : MonoBehaviour
 
         Debug.Log("Borders ON");
     }
+
     private void MaterializeFloor()
     {
         // clear all previously created objects
@@ -362,26 +412,32 @@ public class MapController : MonoBehaviour
 
         gridElements = new Transform[width, depth];
 
+        // Iterate finalGrid
+        // if 100 - skip
+        // if not -- place an object
+        // HERE
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             Transform obj;
-            if (finalGrid[countW, countD] == 1)
+
+            if (finalGrid[countW, countD] == 100)
             {
-                obj = mapElements[1];
+                continue;
             }
-            else
-            {
-                obj = mapElements[0];
-            }
-            // positionY = number of cells right * cell width + number of indices in the cell
-            if (obj != null)
-            {
-                int positionX = countW;
-                int positionY = countD;
-                gridElements[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), Quaternion.identity);
-                gridElements[positionX, positionY].parent = mapHolder;
-            }
+            obj = mapElements[finalGrid[countW, countD]];
+
+            int positionX = countW;
+            int positionY = countD;
+            Quaternion rotation = Quaternion.identity;
+
+            // if (finalGrid[countW, countD] != 0)
+            // {
+            //     rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
+            // }
+            gridElements[positionX, positionY] = Instantiate(obj, new Vector3(positionX, 0, positionY), rotation);
+            gridElements[positionX, positionY].parent = mapHolder;
         }
+        Debug.Log("Materialize");
     }
 
     private void PlaceSplotch(int posW, int posD, int mag)
@@ -415,14 +471,15 @@ public class MapController : MonoBehaviour
     private void CreateBiomes()
     {
         List<Vector2> centroidList = new List<Vector2>();
-                for (int count = 0; count < biomesCount; count++)
+        for (int count = 0; count < biomesCount; count++)
         {
-            int posW = Random.Range(0, width - 1);
-            int posD = Random.Range(0, depth - 1);
+            int posW = Random.Range(0, width);
+            int posD = Random.Range(0, depth);
             centroidList.Add(new Vector2(posW, posD));
         };
 
         gridBiomes = Voronoi.GenerateRegions(width, depth, centroidList);
+        Debug.Log($"Biomes: {centroidList.Count}");
     }
 
     private void ColorizeGrid(int[,] grid)
@@ -437,9 +494,15 @@ public class MapController : MonoBehaviour
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
+            Transform obj = gridElements[countW, countD];
+            if (obj == null)
+            {
+                continue;
+            }
             // gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[grid[countW, countD]];
             gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = biomeColors[grid[countW, countD]];
         }
+        Debug.Log("Colorize");
     }
 
     private int[,] OverlayGrids(int[,] baseGrid, int[,] diffGrid)
@@ -553,17 +616,6 @@ public class MapController : MonoBehaviour
         return target;
     }
 
-    private void MarkPosition(Vector3 position, int type, int obj, bool poi)
-    {
-        int posW = (int)position.x;
-        int posD = (int)position.z;
-
-        gridTypes[posW, posD] = type;
-        gridPOI[posW, posD] = 1;
-        gridDiff[posW, posD] = obj;
-        gridClumps[posW, posD] = 0;
-    }
-
     /// <summary>
     /// Mark position of a cell for processing
     /// </summary>
@@ -572,10 +624,8 @@ public class MapController : MonoBehaviour
     /// </remarks>
     private void MarkPosition(int posW, int posD, int type, int obj, bool poi)
     {
-        gridTypes[posW, posD] = type;
         gridPOI[posW, posD] = poi ? 1 : 0;
         gridDiff[posW, posD] = obj;
-        gridClumps[posW, posD] = 0;
     }
 
     private int[,] FillGrid(int[,] origin, int value)

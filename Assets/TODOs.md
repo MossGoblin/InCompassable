@@ -1,4 +1,8 @@
-﻿# PATH FINDING WAYS
+﻿# TODOs
+- Figure out rotation of massives
+- Shake out obsolete grids
+
+# PATH FINDING WAYS
 
 ## Global map characteristics
 
