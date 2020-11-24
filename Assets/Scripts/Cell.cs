@@ -5,15 +5,17 @@
     public int Width { get; private set; }
     public int Max { get; private set; }
     public int Min { get; private set; }
+    public int InitValue { get; private set; }
     private int used;
     private int counted;
 
-    public Cell(int width, int depth, int min, int max)
+    public Cell(int width, int depth, int min, int max, int initValue)
     {
         this.Width = width;
         this.Depth = depth;
         this.Max = max;
         this.Min = min;
+        this.InitValue = initValue;
 
         InitGrid();
     }
@@ -46,7 +48,7 @@
         int index = UnityEngine.Random.Range(0, counted);
         if (index < used)
         {
-            result = 1;
+            result = this.InitValue;
             used -= 1;
         }
         counted -= 1;

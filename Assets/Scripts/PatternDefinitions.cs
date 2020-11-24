@@ -8,15 +8,15 @@ public static class Patterns
 
     public enum Pattern
     {
-        Crosses,
-        Exes,
+        Square, 
+        DiagonalUp,
+        DiagonalDown,
         AngleZero,
         AngleOne,
         AngleTwo,
         AngleThree,
-        DiagonalDown,
-        DiagonalUp,
-        Square
+        Exes,
+        Crosses,
     }
     public static int[,] GetType(int typeNumber)
     {
@@ -28,31 +28,31 @@ public static class Patterns
         int [,] pattern = new int[0,0];
         switch (typeNumber)
         {
-            case 0:
+            case (int)Pattern.Square:
                 pattern = Square();
                 break;
-            case 1:
-                pattern = AngleZero();
-                break;
-            case 2:
-                pattern = AngleOne();
-                break;
-            case 3:
-                pattern = AngleTwo();
-                break;
-            case 4:
-                pattern = AngleThree();
-                break;
-            case 5:
-                pattern = DiagonalDown();
-                break;
-            case 6:
+            case (int)Pattern.DiagonalUp:
                 pattern = DiagonalUp();
                 break;
-            case 7:
+            case (int)Pattern.DiagonalDown:
+                pattern = DiagonalDown();
+                break;
+            case (int)Pattern.AngleZero:
+                pattern = AngleZero();
+                break;
+            case (int)Pattern.AngleOne:
+                pattern = AngleOne();
+                break;
+            case (int)Pattern.AngleTwo:
+                pattern = AngleTwo();
+                break;
+            case (int)Pattern.AngleThree:
+                pattern = AngleThree();
+                break;
+            case (int)Pattern.Exes:
                 pattern = Exes();
                 break;
-            case 8:
+            case (int)Pattern.Crosses:
                 pattern = Crosses();
                 break;
         }
