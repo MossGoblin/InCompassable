@@ -6,11 +6,18 @@ using Itr = ToolBox.Itr;
 
 public class MapController : MonoBehaviour
 {
+    // Game Seed
+    [Header("Random")]
+
+    [SerializeField]
+    private int seed;
+    [SerializeField]
+    private bool useSeed;
     // Prefabs
     [Header("Prefabs")]
     public Transform floor;
     public List<Transform> mapElements;
-    private Dictionary<Vector3, Patterns.Pattern> massives;
+    private Dictionary<Vector3, Library.Patterns> massives;
 
     // Refs
     [Header("Refs")]
@@ -69,33 +76,24 @@ public class MapController : MonoBehaviour
     // 2 - add
     private int[,] gridDiff; // HERE Questionable
 
-    // Massive Types
-    private enum MassiveTypes
-    {
-        Floor,
-        Basic,
-        Border,
-        Square,
-        Diagonalup,
-        Diagonaldown,
-        AngleZero,
-        AngleOne,
-        AngleTwo,
-        AngleThree,
-        Ex,
-        Cross,
-        Obelisk,
-        RingRim
-    }
-
     public void Start()
     {
+        CheckRandom();
         SetUpMode();
         // Create the map
         CreateMap();
         // DBG player spawn plug
         Debug.Log("Placing players");
         PositionPlayers();
+    }
+
+    private void CheckRandom()
+    {
+        if (!useSeed)
+        {
+            seed = Random.Range(100000, 999999);
+        }
+        Random.InitState(seed);
     }
 
     public void Update()
@@ -177,12 +175,12 @@ public class MapController : MonoBehaviour
 
     private void AddBordersToMassives()
     {
-        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridBorders, (int)MassiveTypes.Border, (int)MassiveTypes.Border);
+        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridBorders, (int)Library.Massives.Border, (int)Library.Massives.Border);
     }
 
     private void CreateBordersGrid()
     {
-        gridBorders = Grids.CreateBordersGrid(width, depth, (int)MassiveTypes.Border);
+        gridBorders = Grids.CreateBordersGrid(width, depth, (int)Library.Massives.Border);
     }
 
     private void CreateNbrsGrid()
@@ -203,7 +201,7 @@ public class MapController : MonoBehaviour
 
         foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
-            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)MassiveTypes.Basic);
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Massives.Basic);
         }
 
         return gridCells;
@@ -244,7 +242,7 @@ public class MapController : MonoBehaviour
         // used for creating borders
         gridBorders = new int[width, depth];
 
-        massives = new Dictionary<Vector3, Patterns.Pattern>();
+        massives = new Dictionary<Vector3, Library.Patterns>();
 
     }
 
@@ -276,7 +274,7 @@ public class MapController : MonoBehaviour
 
         Debug.Log($"Marking squares");
 
-        int[,] pattern = Patterns.Square();
+        int[,] pattern = Library.Square();
 
         List<(int, int)> patternPositions = PatternMapper.FindPattern(workingGrid, pattern);
 
@@ -285,7 +283,22 @@ public class MapController : MonoBehaviour
             Debug.Log($"square: {position.w}/{position.d}");
 
             // HERE MarkArea
-            this.gridMassives = Grids.MarkPattern(this.gridMassives, position.w, position.d, pattern, (int)MassiveTypes.Square);
+            this.gridMassives = Grids.MarkPattern(this.gridMassives, position.w, position.d, pattern, (int)Library.Massives.Square);
+        }
+
+
+        Debug.Log($"Marking arcs up");
+
+        pattern = Library.DiagonalDown();
+
+        patternPositions = PatternMapper.FindPattern(workingGrid, pattern);
+
+        foreach ((int w, int d) position in patternPositions)
+        {
+            Debug.Log($"arc up: {position.w}/{position.d}");
+
+            // HERE MarkArea
+            this.gridMassives = Grids.MarkPattern(this.gridMassives, position.w, position.d, pattern, (int)Library.Massives.DiagonalDown);
         }
     }
 
@@ -366,7 +379,7 @@ public class MapController : MonoBehaviour
             {
                 if (gridBase[countW, countD] == 1) // if there is a block
                 {
-                    MarkPosition(gridMassives, countW, countD, (int)MassiveTypes.RingRim); // mark splotch rim
+                    MarkPosition(gridMassives, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
                 }
             }
             else if ((GetDistance(position, center) < mag)) // if it is inside the radius
@@ -375,7 +388,7 @@ public class MapController : MonoBehaviour
             }
         }
 
-        MarkPosition(gridMassives, posW, posD, (int)MassiveTypes.Obelisk); // mark splotch center
+        MarkPosition(gridMassives, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
     }
 
     private void CreateBiomes()

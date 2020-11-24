@@ -3,10 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class Patterns
+public static class Library
 {
 
-    public enum Pattern
+    // Massive Types
+    public enum Massives
+    {
+        Floor,
+        Basic,
+        Border,
+        Square,
+        DiagonalUp,
+        DiagonalDown,
+        AngleZero,
+        AngleOne,
+        AngleTwo,
+        AngleThree,
+        Ex,
+        Cross,
+        Obelisk,
+        RingRim
+    }
+
+    public enum Patterns
     {
         Square, 
         DiagonalUp,
@@ -20,7 +39,7 @@ public static class Patterns
     }
     public static int[,] GetType(int typeNumber)
     {
-        if (typeNumber > Enum.GetNames(typeof(Pattern)).Length)
+        if (typeNumber > Enum.GetNames(typeof(Patterns)).Length)
         {
             throw new ArgumentException($"No such Pattern - index {typeNumber}");
         }
@@ -28,31 +47,31 @@ public static class Patterns
         int [,] pattern = new int[0,0];
         switch (typeNumber)
         {
-            case (int)Pattern.Square:
+            case (int)Patterns.Square:
                 pattern = Square();
                 break;
-            case (int)Pattern.DiagonalUp:
+            case (int)Patterns.DiagonalUp:
                 pattern = DiagonalUp();
                 break;
-            case (int)Pattern.DiagonalDown:
+            case (int)Patterns.DiagonalDown:
                 pattern = DiagonalDown();
                 break;
-            case (int)Pattern.AngleZero:
+            case (int)Patterns.AngleZero:
                 pattern = AngleZero();
                 break;
-            case (int)Pattern.AngleOne:
+            case (int)Patterns.AngleOne:
                 pattern = AngleOne();
                 break;
-            case (int)Pattern.AngleTwo:
+            case (int)Patterns.AngleTwo:
                 pattern = AngleTwo();
                 break;
-            case (int)Pattern.AngleThree:
+            case (int)Patterns.AngleThree:
                 pattern = AngleThree();
                 break;
-            case (int)Pattern.Exes:
+            case (int)Patterns.Exes:
                 pattern = Exes();
                 break;
-            case (int)Pattern.Crosses:
+            case (int)Patterns.Crosses:
                 pattern = Crosses();
                 break;
         }
@@ -60,7 +79,7 @@ public static class Patterns
         return pattern;
     }
 
-    public static int[,] GetType(Pattern patternName)
+    public static int[,] GetType(Patterns patternName)
     {
         int[,] pattern = GetType((int)patternName);
         return pattern;

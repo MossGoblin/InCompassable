@@ -257,14 +257,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c5a400d8539d054f8b0c3d9a55fa726, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  seed: 111111
+  useSeed: 0
   floor: {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
   mapElements:
   - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
   - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
   - {fileID: 2109063719955871463, guid: 45ade739587999d4d912a71dc3d6238e, type: 3}
   - {fileID: 1936432019998539517, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
-  - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
-  - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
+  - {fileID: 7256200799150049863, guid: a5edd2548a59d754ebf8078c92ccef0e, type: 3}
+  - {fileID: 7256200799150049863, guid: a5edd2548a59d754ebf8078c92ccef0e, type: 3}
   - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
   - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
   - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
@@ -397,7 +399,7 @@ MonoBehaviour:
   initRotation: 0
   rightPlayer: 0
   moveSpeed: 3
-  turnSpeed: 3
+  turnSpeed: 2
 --- !u!143 &636448388
 CharacterController:
   m_ObjectHideFlags: 0
@@ -483,7 +485,7 @@ MonoBehaviour:
   initRotation: 0
   rightPlayer: 1
   moveSpeed: 3
-  turnSpeed: 3
+  turnSpeed: 2
 --- !u!143 &696888231
 CharacterController:
   m_ObjectHideFlags: 0

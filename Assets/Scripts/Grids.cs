@@ -166,7 +166,7 @@ public static class Grids
                 grid[posW + countW, posD + countD] = 100;
             }
             grid[posW, posD] = index;
-            Debug.Log($"marked square at {posW} / {posD}");
+            Debug.Log($"marked obj at {posW} / {posD}");
         }
 
         return grid;
