@@ -9,33 +9,33 @@ public static class Library
     // Massive Types
     public enum Massives
     {
-        Floor,
-        Basic,
-        Border,
-        Square,
-        DiagonalUp,
-        DiagonalDown,
-        AngleZero,
-        AngleOne,
-        AngleTwo,
-        AngleThree,
-        Ex,
-        Cross,
-        Obelisk,
-        RingRim
+        Floor = 0,
+        Basic = 1,
+        Border = 2,
+        Square = 3,
+        DiagonalUp = 4,
+        DiagonalDown = 5,
+        AngleZero = 6,
+        AngleOne = 7,
+        AngleTwo = 8,
+        AngleThree = 9,
+        Ex = 10,
+        Cross = 11,
+        Obelisk = 12,
+        RingRim = 13
     }
 
     public enum Patterns
     {
-        Square, 
-        DiagonalUp,
-        DiagonalDown,
-        AngleZero,
-        AngleOne,
-        AngleTwo,
-        AngleThree,
-        Exes,
-        Crosses,
+        Square = 3,
+        DiagonalUp = 4,
+        DiagonalDown = 5,
+        AngleZero = 6,
+        AngleOne = 7,
+        AngleTwo = 8,
+        AngleThree = 9,
+        Ex = 10,
+        Cross = 11
     }
     public static int[,] GetType(int typeNumber)
     {
@@ -68,10 +68,10 @@ public static class Library
             case (int)Patterns.AngleThree:
                 pattern = AngleThree();
                 break;
-            case (int)Patterns.Exes:
+            case (int)Patterns.Ex:
                 pattern = Exes();
                 break;
-            case (int)Patterns.Crosses:
+            case (int)Patterns.Cross:
                 pattern = Crosses();
                 break;
         }

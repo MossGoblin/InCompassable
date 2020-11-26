@@ -60,21 +60,20 @@ public class MapController : MonoBehaviour
     private int[,] gridBiomes;
     [SerializeField] Color[] biomeColors;
 
+
+    [Header("Patterns")]
+    [SerializeField] bool[] patternChecks;
+
     // Primary Grids
     private Cell[,] gridCells; // used for density distrubution - // HERE USED
     private int[,] gridBase; // base grid - only empty and full // HERE USED
     private int[,] gridMassives; // positions of all special massives // HERE USED
+    private bool[,] gridLock;
     public int[,] finalGrid; // final grid with all basics and massives
 
     // Secondary grids
     private int[,] gridBorders;
     public Transform[,] gridElements; // Game Objects for all basics and massives
-    private int[,] gridPOI; // Points of Interest - to be avoided when performing availability checks
-
-    // 0 - do not change
-    // 1 - remove
-    // 2 - add
-    private int[,] gridDiff; // HERE Questionable
 
     public void Start()
     {
@@ -103,7 +102,6 @@ public class MapController : MonoBehaviour
     }
     private void HandleInput()
     {
-        // HERE INPUT
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
         //     CreateNbrsGrid();
@@ -146,17 +144,17 @@ public class MapController : MonoBehaviour
     {
         InitGrids();
 
-        CreateBasicGrid();
+        CreateBasicGrid(); // gridBase - generate
 
-        CreateNbrsGrid(); // Thicken the soup
+        CreateNbrsGrid(); // gridBase - add nbrs
 
-        CreateBordersGrid();
-        AddBordersToMassives();
-        CreateSplotches();
+        CreateBordersGrid(); // gridBorders - add borders
+        AddBordersToMassives(); // gridMassives - add gridBorders
+        CreateSplotches(); // gridMassives - add splotches
 
-        finalGrid = Grids.Copy(gridBase);
-        MarkPatterns(); // HERE mark all massives
-        finalGrid = CollapseGrids(finalGrid);
+        // DBG finalGrid = Grids.Copy(gridBase);
+        int[,] workingGrid = MarkPatterns(); // mark all massives
+        finalGrid = OverlayMassives(workingGrid);
 
         MaterializeFloor();
         // // 6.
@@ -173,39 +171,6 @@ public class MapController : MonoBehaviour
 
     }
 
-    private void AddBordersToMassives()
-    {
-        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridBorders, (int)Library.Massives.Border, (int)Library.Massives.Border);
-    }
-
-    private void CreateBordersGrid()
-    {
-        gridBorders = Grids.CreateBordersGrid(width, depth, (int)Library.Massives.Border);
-    }
-
-    private void CreateNbrsGrid()
-    {
-        gridBase = Grids.AddNbrs(gridBase, nbrClumpThreshold);
-    }
-
-
-    private void CreateBasicGrid()
-    {
-        gridCells = CreateCellsGrid(floorCellWidth, floorCellDepth);
-        gridBase = Grids.CreateBasicGrid(floorCellWidth, floorCellDepth, cellCols, cellRows, gridCells);
-    }
-
-    private Cell[,] CreateCellsGrid(int floorCellWidth, int floorCellDepth)
-    {
-        Cell[,] gridCells = new Cell[floorCellWidth, floorCellDepth];
-
-        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
-        {
-            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Massives.Basic);
-        }
-
-        return gridCells;
-    }
 
     private void InitGrids()
     {
@@ -219,31 +184,47 @@ public class MapController : MonoBehaviour
         // Init basic grid
         gridBase = new int[width, depth];
 
+        // Biome identities grid
+        gridBiomes = new int[width, depth];
+
+        // Massives to be added to the map
+        gridMassives = new int[width, depth];
+
+        gridLock = new bool[width, depth];
+        gridLock = Grids.Init(gridLock, true);  // locks positions for use  to pverent overlapping of massives
+
+        // used for creating borders
+        gridBorders = new int[width, depth];
+
         // Init final grid
         finalGrid = new int[width, depth];
 
         // Init object grid
         gridElements = new Transform[width, depth];
 
-        // Init difference grid
-        gridDiff = new int[width, depth];
-        gridDiff = FillGrid(gridDiff, 2); // fill in with 2's -- no change to original grid
+        massives = new Dictionary<Vector3, Library.Patterns>(); // DBG used??
 
-        // POI grid
-        gridPOI = new int[width, depth];
+    }
+    private void CreateBasicGrid()
+    {
+        gridCells = CreateCellsGrid(floorCellWidth, floorCellDepth);
+        gridBase = Grids.CreateBasicGrid(floorCellWidth, floorCellDepth, cellCols, cellRows, gridCells);
+    }
 
-        // Biome identities grid
-        gridBiomes = new int[width, depth];
 
-        // Massives to be added to the map
-        gridMassives = new int[width, depth];
-        gridMassives = Grids.Init(gridMassives, 100);
+    private void CreateNbrsGrid()
+    {
+        gridBase = Grids.AddNbrs(gridBase, nbrClumpThreshold);
+    }
 
-        // used for creating borders
-        gridBorders = new int[width, depth];
+    private void CreateBordersGrid()
+    {
+        gridBorders = Grids.CreateBordersGrid(width, depth, (int)Library.Massives.Border);
+    }
 
-        massives = new Dictionary<Vector3, Library.Patterns>();
-
+    private void AddBordersToMassives()
+    {
+        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)Library.Massives.Border, (int)Library.Massives.Border);
     }
 
     private void CreateSplotches()
@@ -255,56 +236,126 @@ public class MapController : MonoBehaviour
         int averageDistanceW = (int)(width / (splotchNum + 1)); // X splotches => x+1 spreads around them
         // width - avoid border
 
-        for (int count = 1; count <= splotchNum; count++)
+        bool goodSpot = false;
+        while (!goodSpot)
         {
-            int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
-            int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
-            int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
-            PlaceSplotch(gridMassives, posW, posD, splotchMagnitude);
+            for (int count = 1; count <= splotchNum; count++)
+            {
+                // select a position that will guarantee that the splotch will not overlap another massive
+                int posW = count * averageDistanceW + Random.Range(-splotchSize, splotchSize); // A step ahead, random deviation the size of the magnitude
+                int posD = Random.Range(2 + splotchSize, depth - 2 - splotchSize);
+                int splotchMagnitude = Random.Range((int)(splotchSize / 2), splotchSize);
+                // overlap check
+                goodSpot = CheckForOverlaps(gridLock, posW, posD, splotchMagnitude);
+                if (goodSpot)
+                {
+                    PlaceSplotch(gridMassives, posW, posD, splotchMagnitude);
+                }
+            }
         }
 
         Debug.Log("Splotches ON");
     }
 
-    private void MarkPatterns()
+    private bool CheckForOverlaps(bool[,] grid, int posW, int posD, int mag)
     {
-        int[,] workingGrid = Grids.Copy(gridBase);
-        workingGrid = CollapseGrids(finalGrid);
-        workingGrid = Grids.Flatten(workingGrid, 0);
+        bool result = true;
+        Vector3 center = new Vector3(posW, 0, posD);
+        Vector3 position = new Vector3(0, 0, 0);
 
-        Debug.Log($"Marking squares");
-
-        int[,] pattern = Library.Square();
-
-        List<(int, int)> patternPositions = PatternMapper.FindPattern(workingGrid, pattern);
-
-        foreach ((int w, int d) position in patternPositions)
+        // iterate the vicinity of the splotch center
+        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+                                                                        posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
         {
-            Debug.Log($"square: {position.w}/{position.d}");
-
-            // HERE MarkArea
-            this.gridMassives = Grids.MarkPattern(this.gridMassives, position.w, position.d, pattern, (int)Library.Massives.Square);
+            if ((GetDistance(position, center) <= mag)) // if it is inside the radius
+            {
+                if (!grid[countW, countD]) // if the position is not 0, then there is already a massive index there; so the whole checked space is unavailable
+                {
+                    result = false;
+                    break;
+                }
+            }
+            if (!result)
+            {
+                break;
+            }
         }
 
-
-        Debug.Log($"Marking arcs up");
-
-        pattern = Library.DiagonalDown();
-
-        patternPositions = PatternMapper.FindPattern(workingGrid, pattern);
-
-        foreach ((int w, int d) position in patternPositions)
-        {
-            Debug.Log($"arc up: {position.w}/{position.d}");
-
-            // HERE MarkArea
-            this.gridMassives = Grids.MarkPattern(this.gridMassives, position.w, position.d, pattern, (int)Library.Massives.DiagonalDown);
-        }
+        return result;
     }
 
-    private int[,] CollapseGrids(int[,] targetGrid)
+    private void PlaceSplotch(int[,] grid, int posW, int posD, int mag)
     {
-        targetGrid = Grids.ApplyMask(targetGrid, gridMassives, 100);
+        Vector3 center = new Vector3(posW, 0, posD);
+        Vector3 position = new Vector3(0, 0, 0);
+
+        // iterate the vicinity of the splotch center
+        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+                                                                        posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
+        {
+            position = new Vector3(countW, 0, countD);
+            // if it is on the rim
+            if ((GetDistance(position, center) >= (float)mag) &&
+            ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
+            {
+                if (gridBase[countW, countD] == 1) // if there is a block
+                {
+                    MarkPosition(gridMassives, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
+                }
+            }
+            else if ((GetDistance(position, center) < mag)) // if it is inside the radius
+            {
+                MarkPosition(gridMassives, countW, countD, 0); // empty splotch radius - mark as 100 for 'to be avoided'
+            }
+        }
+
+        MarkPosition(gridMassives, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
+    }
+
+    private int[,] MarkPatterns()
+    {
+        int[,] workingGrid = Grids.Copy(gridBase);
+        workingGrid = OverlayMassives(workingGrid);
+
+        int[,] pattern;
+
+        foreach (int index in Enum.GetValues(typeof(Library.Patterns)))
+        {
+            if (!patternChecks[index-3])
+            {
+                continue;
+            }
+
+            Debug.Log($"Marking pattern {index}");
+
+            pattern = Library.GetType(index);
+            List<(int, int)> patternPositions = PatternMapper.FindPattern(workingGrid, ref gridLock, pattern);
+            foreach ((int width, int depth) position in patternPositions)
+            {
+                Debug.Log($"ptrn: {position.width}/{position.depth}");
+
+                // this.gridMassives = Grids.MarkPattern(workingGrid, position.w, position.d, pattern, (int)Library.Massives.Square);
+                workingGrid[position.width, position.depth] = (int)Library.Massives.Square;
+            }
+        }
+
+        return workingGrid;
+    }
+    private Cell[,] CreateCellsGrid(int floorCellWidth, int floorCellDepth)
+    {
+        Cell[,] gridCells = new Cell[floorCellWidth, floorCellDepth];
+
+        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
+        {
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Massives.Basic);
+        }
+
+        return gridCells;
+    }
+
+    private int[,] OverlayMassives(int[,] targetGrid)
+    {
+        targetGrid = Grids.ApplyMask(targetGrid, gridMassives); // apply 
         Debug.Log("Collapse grids");
         return targetGrid;
     }
@@ -361,34 +412,6 @@ public class MapController : MonoBehaviour
 
         }
         Debug.Log("Materialize");
-    }
-
-    private void PlaceSplotch(int[,] grid, int posW, int posD, int mag)
-    {
-        Vector3 center = new Vector3(posW, 0, posD);
-        Vector3 position = new Vector3(0, 0, 0);
-
-        // iterate the vicinity of the splotch center
-        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
-                                                                        posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
-        {
-            position = new Vector3(countW, 0, countD);
-            // if it is on the rim
-            if ((GetDistance(position, center) >= (float)mag) &&
-            ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
-            {
-                if (gridBase[countW, countD] == 1) // if there is a block
-                {
-                    MarkPosition(gridMassives, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
-                }
-            }
-            else if ((GetDistance(position, center) < mag)) // if it is inside the radius
-            {
-                MarkPosition(gridMassives, countW, countD, 0); // empty splotch radius - mark as 100 for 'to be avoided'
-            }
-        }
-
-        MarkPosition(gridMassives, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
     }
 
     private void CreateBiomes()

@@ -99,8 +99,25 @@ public static class Grids
         return array;
     }
 
-    internal static int[,] ApplyMaskIndex(int[,] gridBase, int[,] gridMask, int indexMask, int indexBase)
+    public static bool[,] Init(bool[,] array, bool index)
     {
+        int sizeD = array.GetLength(0);
+        int sizeW = array.GetLength(1);
+
+        for (int cd = 0; cd < sizeD; cd += 1)
+        {
+            for (int cw = 0; cw < sizeW; cw += 1)
+            {
+                array[cd, cw] = index;
+            }
+        }
+
+        return array;
+    }
+
+    internal static int[,] ApplyMaskIndex(int[,] gridBase, bool[,] gridLock, int[,] gridMask, int indexMask, int indexBase)
+    {
+        // Applies mask to grid - translate indexMask from mask to indexBase in grid
         // sanity check
         if (gridBase.GetLength(0) != gridMask.GetLength(0) ||
             gridBase.GetLength(1) != gridMask.GetLength(1))
@@ -116,6 +133,7 @@ public static class Grids
             if (gridMask[countW, countD] == indexMask)
             {
                 gridBase[countW, countD] = indexBase;
+                gridLock[countW, countD] = false;
             }
         }
 
@@ -145,22 +163,47 @@ public static class Grids
         return gridBase;
     }
 
+    internal static int[,] ApplyMask(int[,] gridBase, int[,] gridMask)
+    {
+        // sanity check
+        if (gridBase.GetLength(0) != gridMask.GetLength(0) ||
+            gridBase.GetLength(1) != gridMask.GetLength(1))
+        {
+            throw new ArgumentException("Grid dimentions don't match");
+        }
+
+        int width = gridBase.GetLength(0);
+        int depth = gridBase.GetLength(1);
+
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        {
+            if (gridMask[countW, countD] > 0)
+            {
+                gridBase[countW, countD] = gridMask[countW, countD];
+            }
+        }
+
+        return gridBase;
+    }
+
 
     public static int[,] MarkPattern(int[,] grid, int posW, int posD, int[,] pattern, int index)
     {
+        // Check if the pattern falls on an empty space
         bool interrupted = false;
-        // // Mark the whole pattern area with 100 if it is available
-        // foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
-        // {
-        //     if (grid[posW, posD] != 0)
-        //     {
-        //         interrupted = true;
-        //         break;
-        //     }
-        // }
+        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        {
+            if (grid[posW + countW, posD + countD] != 0)
+            {
+                interrupted = true;
+                break;
+            }
+        }
 
+        // mark the pattern on the grid
         if (!interrupted)
         {
+            // mark all the cells of the pattern as 100 - to be avoided in the future
             foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
             {
                 grid[posW + countW, posD + countD] = 100;

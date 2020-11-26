@@ -4,7 +4,7 @@ using Itr = ToolBox.Itr;
 
 public static class PatternMapper
 {
-    public static List<(int, int)> FindPattern(int[,] grid, int[,] pattern)
+    public static List<(int, int)> FindPattern(int[,] grid, ref bool[,] gridLock, int[,] pattern)
     {
         List<(int, int)> result = new List<(int, int)>();
         List<(int, int)> countedPositions = new List<(int, int)>();
@@ -17,9 +17,9 @@ public static class PatternMapper
 
 
         // 1.
-        foreach ((int countW, int countD) in Itr.IterationRange(1, width - patternWidth, 1, patternDepth))
+        foreach ((int countW, int countD) in Itr.IterationRange(1, width - patternWidth, 1, depth - patternDepth))
         {
-            if (countedPositions.Contains((countW, countD)))
+            if (countedPositions.Contains((countW, countD)) || gridLock[countW, countD])
             {
                 continue;
             }
@@ -27,7 +27,7 @@ public static class PatternMapper
             bool match = Overlay(grid, pattern, countW, countD, countedPositions);
             if (match)
             {
-                MarkAsCounted(pattern, countW, countD, ref countedPositions);
+                MarkAsCounted(pattern, gridLock, countW, countD, ref countedPositions);
                 result.Add((countW, countD));
             }
         }
@@ -49,11 +49,12 @@ public static class PatternMapper
         return true;
     }
 
-    private static void MarkAsCounted(int[,] pattern, int posW, int posD, ref List<(int, int)> counted)
+    private static void MarkAsCounted(int[,] pattern, bool[,] gridLock, int posW, int posD, ref List<(int, int)> counted)
     {
         foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             counted.Add((posW + countW, posD + countD));
+            gridLock[countW, countD] = false;
         }
     }
 }
