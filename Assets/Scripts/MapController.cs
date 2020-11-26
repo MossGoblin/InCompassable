@@ -73,6 +73,7 @@ public class MapController : MonoBehaviour
 
     // Secondary grids
     private int[,] gridBorders;
+    public Transform[,] gridFloor; // Game Objects for all floor tiles
     public Transform[,] gridElements; // Game Objects for all basics and massives
 
     public void Start()
@@ -83,7 +84,7 @@ public class MapController : MonoBehaviour
         CreateMap();
         // DBG player spawn plug
         Debug.Log("Placing players");
-        PositionPlayers();
+        // PositionPlayers();
     }
 
     private void CheckRandom()
@@ -146,22 +147,19 @@ public class MapController : MonoBehaviour
 
         CreateBasicGrid(); // gridBase - generate
 
-        CreateNbrsGrid(); // gridBase - add nbrs
+        int[,] workingGrid = Grids.Copy(gridBase);
+        workingGrid = CreateNbrsGrid(workingGrid); // add nbrs
 
-        CreateBordersGrid(); // gridBorders - add borders
-        AddBordersToMassives(); // gridMassives - add gridBorders
-        CreateSplotches(); // gridMassives - add splotches
+        (workingGrid, gridLock) = CreateBordersGrid(workingGrid, gridLock); // add borders
 
-        // DBG finalGrid = Grids.Copy(gridBase);
-        int[,] workingGrid = MarkPatterns(); // mark all massives
-        finalGrid = OverlayMassives(workingGrid);
+        (workingGrid, gridLock) = CreateSplotches(workingGrid, gridLock); // add splotches
 
-        MaterializeFloor();
-        // // 6.
-        // finalGrid = AddMassives(finalGrid);
+        (workingGrid, gridLock) = MarkPatterns(workingGrid, gridLock); // mark all patterns
 
-        // // Mat.
-        // HBD
+        int[,] finalGrid = Grids.Copy(workingGrid);
+        // (finalGrid, gridLock) = OverlayGrids(workingGrid, gridLock);
+
+        MaterializeFloor(finalGrid);
 
         // // Biomes
         CreateBiomes();
@@ -190,8 +188,7 @@ public class MapController : MonoBehaviour
         // Massives to be added to the map
         gridMassives = new int[width, depth];
 
-        gridLock = new bool[width, depth];
-        gridLock = Grids.Init(gridLock, true);  // locks positions for use  to pverent overlapping of massives
+        gridLock = new bool[width, depth];  // locks positions for use  to prevent overlapping of massives -- true = used
 
         // used for creating borders
         gridBorders = new int[width, depth];
@@ -212,14 +209,18 @@ public class MapController : MonoBehaviour
     }
 
 
-    private void CreateNbrsGrid()
+    private int[,] CreateNbrsGrid(int[,] grid)
     {
-        gridBase = Grids.AddNbrs(gridBase, nbrClumpThreshold);
+        int[,] gridResult = Grids.AddNbrs(grid, nbrClumpThreshold);
+
+        return gridResult;
     }
 
-    private void CreateBordersGrid()
+    private (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock)
     {
-        gridBorders = Grids.CreateBordersGrid(width, depth, (int)Library.Massives.Border);
+        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)Library.Massives.Border);
+
+        return (grid, gridLock);
     }
 
     private void AddBordersToMassives()
@@ -227,7 +228,7 @@ public class MapController : MonoBehaviour
         gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)Library.Massives.Border, (int)Library.Massives.Border);
     }
 
-    private void CreateSplotches()
+    private (int[,], bool[,]) CreateSplotches(int[,] grid, bool[,] gridLock)
     {
 
         // new position picking
@@ -249,12 +250,14 @@ public class MapController : MonoBehaviour
                 goodSpot = CheckForOverlaps(gridLock, posW, posD, splotchMagnitude);
                 if (goodSpot)
                 {
-                    PlaceSplotch(gridMassives, posW, posD, splotchMagnitude);
+                    (grid, gridLock) = PlaceSplotch(grid, posW, posD, splotchMagnitude);
                 }
             }
         }
 
         Debug.Log("Splotches ON");
+
+        return (grid, gridLock);
     }
 
     private bool CheckForOverlaps(bool[,] grid, int posW, int posD, int mag)
@@ -284,7 +287,7 @@ public class MapController : MonoBehaviour
         return result;
     }
 
-    private void PlaceSplotch(int[,] grid, int posW, int posD, int mag)
+    private (int[,], bool[,]) PlaceSplotch(int[,] grid, int posW, int posD, int mag)
     {
         Vector3 center = new Vector3(posW, 0, posD);
         Vector3 position = new Vector3(0, 0, 0);
@@ -298,48 +301,56 @@ public class MapController : MonoBehaviour
             if ((GetDistance(position, center) >= (float)mag) &&
             ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
             {
-                if (gridBase[countW, countD] == 1) // if there is a block
+                if (grid[countW, countD] == 1) // if there is a block
                 {
-                    MarkPosition(gridMassives, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
+                    // MarkPosition(grid, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
+                    grid[countW, countD] = (int)Library.Massives.RingRim;
+                    gridLock[countW, countD] = true;
+
                 }
             }
             else if ((GetDistance(position, center) < mag)) // if it is inside the radius
             {
-                MarkPosition(gridMassives, countW, countD, 0); // empty splotch radius - mark as 100 for 'to be avoided'
+                grid[countW, countD] = 0;
+                gridLock[countW, countD] = true;
+                // MarkPosition(grid, countW, countD, 0); // empty splotch radius - mark as 100 for 'to be avoided'
             }
         }
 
-        MarkPosition(gridMassives, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
+        grid[posW, posD] = (int)Library.Massives.Obelisk;
+        // MarkPosition(grid, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
+
+        return (grid, gridLock);
     }
 
-    private int[,] MarkPatterns()
+    private (int[,], bool[,]) MarkPatterns(int[,] grid, bool[,] gridLock)
     {
-        int[,] workingGrid = Grids.Copy(gridBase);
-        workingGrid = OverlayMassives(workingGrid);
+        // int[,] workingGrid = Grids.Copy(gridBase);
+        // workingGrid = OverlayGrids(workingGrid, gridMassives);
 
         int[,] pattern;
 
         foreach (int index in Enum.GetValues(typeof(Library.Patterns)))
         {
-            if (!patternChecks[index-3])
+            if (!patternChecks[index - 3])
             {
                 continue;
             }
 
-            Debug.Log($"Marking pattern {index}");
+            Debug.Log($"Marking pattern {index - 3}");
 
             pattern = Library.GetType(index);
-            List<(int, int)> patternPositions = PatternMapper.FindPattern(workingGrid, ref gridLock, pattern);
+            List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
             foreach ((int width, int depth) position in patternPositions)
             {
-                Debug.Log($"ptrn: {position.width}/{position.depth}");
+                Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
 
                 // this.gridMassives = Grids.MarkPattern(workingGrid, position.w, position.d, pattern, (int)Library.Massives.Square);
-                workingGrid[position.width, position.depth] = (int)Library.Massives.Square;
+                grid[position.width, position.depth] = index;
             }
         }
 
-        return workingGrid;
+        return (grid, gridLock);
     }
     private Cell[,] CreateCellsGrid(int floorCellWidth, int floorCellDepth)
     {
@@ -353,15 +364,16 @@ public class MapController : MonoBehaviour
         return gridCells;
     }
 
-    private int[,] OverlayMassives(int[,] targetGrid)
+    private (int[,], bool[,]) OverlayGrids(int[,] overlayGrid, bool[,] gridLock)
     {
-        targetGrid = Grids.ApplyMask(targetGrid, gridMassives); // apply 
+        int[,] targetGrid = new int[overlayGrid.GetLength(0), overlayGrid.GetLength(1)];
+        Grids.ApplyMask(targetGrid, overlayGrid, gridLock); // apply mask to base only where the gridLock has been marked
         Debug.Log("Collapse grids");
-        return targetGrid;
+        return (targetGrid, gridLock);
     }
 
 
-    private void MaterializeFloor()
+    private void MaterializeFloor(int[,] grid)
     {
         // clear all previously created objects
         foreach (Transform obj in mapHolder)
@@ -372,6 +384,7 @@ public class MapController : MonoBehaviour
         int width = gridElements.GetLength(0);
         int depth = gridElements.GetLength(1);
 
+        gridFloor = new Transform[width, depth];
         gridElements = new Transform[width, depth];
 
 
@@ -379,6 +392,7 @@ public class MapController : MonoBehaviour
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             gridElements[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
+            // gridFloor[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
 
         }
 
@@ -390,15 +404,15 @@ public class MapController : MonoBehaviour
         {
             Transform obj;
 
-            if (finalGrid[countW, countD] == 0)
+            if (grid[countW, countD] == 0)
             {
                 continue;
             }
-            if (finalGrid[countW, countD] == 3)
-            {
-                Debug.Log($"obj at: {countW}/{countD} -- {finalGrid[countW, countD]}");
-            }
-            obj = mapElements[finalGrid[countW, countD]];
+            // if (grid[countW, countD] != 0)
+            // {
+            //     Debug.Log($"obj at: {countW}/{countD} -- {grid[countW, countD]}");
+            // }
+            obj = mapElements[grid[countW, countD]];
 
             int positionX = countW;
             int positionY = countD;
@@ -449,20 +463,6 @@ public class MapController : MonoBehaviour
             gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = biomeColors[grid[countW, countD]];
         }
         Debug.Log("Colorize");
-    }
-
-    private int[,] OverlayGrids(int[,] baseGrid, int[,] diffGrid)
-    {
-
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
-        {
-            if (diffGrid[countW, countD] != 2)
-            {
-                baseGrid[countW, countD] = diffGrid[countW, countD];
-            }
-        }
-
-        return baseGrid;
     }
 
     private void PositionPlayers()
@@ -558,10 +558,10 @@ public class MapController : MonoBehaviour
     /// <remarks>
     /// posW, posD, object type, empty/block, poi 
     /// </remarks>
-    private void MarkPosition(int[,] grid, int posW, int posD, int index)
-    {
-        grid[posW, posD] = index;
-    }
+    // private void MarkPosition(int[,] grid, int posW, int posD, int index)
+    // {
+    //     grid[posW, posD] = index;
+    // }
 
     private int[,] FillGrid(int[,] origin, int value)
     {

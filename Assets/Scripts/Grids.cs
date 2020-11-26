@@ -30,10 +30,11 @@ public static class Grids
         return gridBase;
     }
 
-    public static int[,] CreateBordersGrid(int width, int depth, int index)
+    public static (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock, int index)
     {
         // TODO MarkPosition
-        int[,] grid = new int[width, depth];
+        int width = grid.GetLength(0);
+        int depth = grid.GetLength(1);
         int podW = 0;
         int posD = 0;
         for (int countW = 0; countW < grid.GetLength(0); countW += 1)
@@ -41,7 +42,7 @@ public static class Grids
             podW = countW;
             posD = 0;
             grid[podW, posD] = index;
-            // MarkPosition(podW, posD, 1, 1, false);
+            gridLock[podW, posD] = true;
         }
 
         for (int countW = 0; countW < grid.GetLength(0); countW += 1)
@@ -49,7 +50,7 @@ public static class Grids
             podW = countW;
             posD = grid.GetLength(1) - 1;
             grid[podW, posD] = index;
-            // MarkPosition(podW, posD, 1, 1, false);
+            gridLock[podW, posD] = true;
         }
 
         for (int countD = 0; countD < grid.GetLength(1); countD += 1)
@@ -57,7 +58,7 @@ public static class Grids
             podW = 0;
             posD = countD;
             grid[podW, posD] = index;
-            // MarkPosition(podW, posD, 1, 1, false);
+            gridLock[podW, posD] = true;
         }
 
         for (int countD = 0; countD < grid.GetLength(1); countD += 1)
@@ -65,11 +66,11 @@ public static class Grids
             podW = grid.GetLength(0) - 1;
             posD = countD;
             grid[podW, posD] = index;
-            // MarkPosition(podW, posD, 1, 1, false);
+            gridLock[podW, posD] = true;
         }
 
         Debug.Log("Borders ON");
-        return grid;
+        return (grid, gridLock);
     }
 
     public static int[,] GenerateGridWithFill(int width, int depth, int fill)
@@ -133,7 +134,7 @@ public static class Grids
             if (gridMask[countW, countD] == indexMask)
             {
                 gridBase[countW, countD] = indexBase;
-                gridLock[countW, countD] = false;
+                gridLock[countW, countD] = true;
             }
         }
 
@@ -163,7 +164,7 @@ public static class Grids
         return gridBase;
     }
 
-    internal static int[,] ApplyMask(int[,] gridBase, int[,] gridMask)
+    internal static int[,] ApplyMask(int[,] gridBase, int[,] gridMask, bool[,] gridLock)
     {
         // sanity check
         if (gridBase.GetLength(0) != gridMask.GetLength(0) ||
@@ -177,7 +178,7 @@ public static class Grids
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
-            if (gridMask[countW, countD] > 0)
+            if (gridLock[countW, countD])
             {
                 gridBase[countW, countD] = gridMask[countW, countD];
             }
@@ -187,30 +188,16 @@ public static class Grids
     }
 
 
-    public static int[,] MarkPattern(int[,] grid, int posW, int posD, int[,] pattern, int index)
+    public static int[,] MarkPattern(int[,] grid, bool[,] gridLock, int posW, int posD, int[,] pattern, int index)
     {
-        // Check if the pattern falls on an empty space
-        bool interrupted = false;
+        // mark the pattern on the grid
+        // mark all the cells of the pattern as 100 - to be avoided in the future
         foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
-            if (grid[posW + countW, posD + countD] != 0)
-            {
-                interrupted = true;
-                break;
-            }
+            grid[posW + countW, posD + countD] = 100;
         }
-
-        // mark the pattern on the grid
-        if (!interrupted)
-        {
-            // mark all the cells of the pattern as 100 - to be avoided in the future
-            foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
-            {
-                grid[posW + countW, posD + countD] = 100;
-            }
-            grid[posW, posD] = index;
-            Debug.Log($"marked obj at {posW} / {posD}");
-        }
+        grid[posW, posD] = index;
+        Debug.Log($"marked obj at {posW} / {posD}");
 
         return grid;
     }

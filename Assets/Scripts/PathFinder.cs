@@ -251,16 +251,16 @@ public class PathFinder : MonoBehaviour
         }
 
         // FIXME diagonal nbrs
-        for (int countW = -1; countW < 2; countW += 2)
-        {
-            for (int countD = -1; countD < 2; countD += 2)
-            {
-                if (floor.finalGrid[width + countW, depth + countD] == 1)
-                {
-                    freeNbrsDia += 1;
-                }
-            }
-        }
+        // for (int countW = -1; countW < 2; countW += 2)
+        // {
+        //     for (int countD = -1; countD < 2; countD += 2)
+        //     {
+        //         if (floor.finalGrid[width + countW, depth + countD] == 1)
+        //         {
+        //             freeNbrsDia += 1;
+        //         }
+        //     }
+        // }
 
         if (freeNbrsOrt >= minFreeNbrsOrt && freeNbrsDia >= minFreeNbrsDia)
         {
