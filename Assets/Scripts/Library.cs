@@ -13,8 +13,8 @@ public static class Library
         Basic = 1,
         Border = 2,
         Square = 3,
-        DiagonalUp = 4,
-        DiagonalDown = 5,
+        ArcUp = 4,
+        ArcDown = 5,
         AngleZero = 6,
         AngleOne = 7,
         AngleTwo = 8,
@@ -28,8 +28,8 @@ public static class Library
     public enum Patterns
     {
         Square = 3,
-        DiagonalUp = 4,
-        DiagonalDown = 5,
+        ArcUp = 4,
+        ArcDown = 5,
         AngleZero = 6,
         AngleOne = 7,
         AngleTwo = 8,
@@ -50,10 +50,10 @@ public static class Library
             case (int)Patterns.Square:
                 pattern = Square();
                 break;
-            case (int)Patterns.DiagonalUp:
+            case (int)Patterns.ArcUp:
                 pattern = DiagonalUp();
                 break;
-            case (int)Patterns.DiagonalDown:
+            case (int)Patterns.ArcDown:
                 pattern = DiagonalDown();
                 break;
             case (int)Patterns.AngleZero:
