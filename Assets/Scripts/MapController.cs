@@ -345,6 +345,7 @@ public class MapController : MonoBehaviour
                 pattern = Library.GetPattern(index);
                 pattern = RotatePattern(pattern, angle);
                 List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
+                Debug.Log($"found {patternPositions.Count}");
                 foreach ((int width, int depth) position in patternPositions)
                 {
                     // Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
