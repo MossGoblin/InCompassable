@@ -331,12 +331,12 @@ public class MapController : MonoBehaviour
 
         foreach (int index in Enum.GetValues(typeof(Library.Elements)))
         {
-            if (index < 3  || !patternChecks[index - 3])
+            if (index < 3  || !patternChecks[index - 3] || !library.elementPool[index].hasPattern)
             {
                 continue;
             }
 
-            Debug.Log($"Marking pattern {index - 3}");
+            Debug.Log($"Marking element {index}");
 
             int[] angles = Library.GetAngles(index);
             // there are more than 1 angles for this pattern
