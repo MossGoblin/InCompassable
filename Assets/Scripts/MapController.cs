@@ -338,16 +338,16 @@ public class MapController : MonoBehaviour
 
             Debug.Log($"Marking pattern {index - 3}");
 
-            int[] angles = library.GetAngles(index);
+            int[] angles = Library.GetAngles(index);
             // there are more than 1 angles for this pattern
             foreach (int angle in angles)
             {
-                pattern = library.GetType(index);
+                pattern = Library.GetPattern(index);
                 pattern = RotatePattern(pattern, angle);
                 List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
                 foreach ((int width, int depth) position in patternPositions)
                 {
-                    Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
+                    // Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
                     grid[position.width, position.depth] = index;
                     gridAngles[position.width, position.depth] = angle;
                 }
@@ -433,7 +433,7 @@ public class MapController : MonoBehaviour
             // DBG Trying with the collection
             // obj = mapElements[grid[countW, countD]];
             int index = grid[countW, countD];
-            obj = library.elementPool[index].prefab;
+            obj = library.elementPool[index].prefab; // FIXME
             
 
             int positionX = countW;
