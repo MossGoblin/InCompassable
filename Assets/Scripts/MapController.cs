@@ -323,9 +323,6 @@ public class MapController : MonoBehaviour
 
     private (int[,], bool[,]) MarkPatterns(int[,] grid, bool[,] gridLock)
     {
-        // int[,] workingGrid = Grids.Copy(gridBase);
-        // workingGrid = OverlayGrids(workingGrid, gridMassives);
-
         int[,] pattern;
 
         foreach (int index in Enum.GetValues(typeof(Library.Patterns)))
@@ -342,8 +339,6 @@ public class MapController : MonoBehaviour
             foreach ((int width, int depth) position in patternPositions)
             {
                 Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
-
-                // this.gridMassives = Grids.MarkPattern(workingGrid, position.w, position.d, pattern, (int)Library.Massives.Square);
                 grid[position.width, position.depth] = index;
             }
         }

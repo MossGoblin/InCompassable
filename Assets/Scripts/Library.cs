@@ -13,60 +13,40 @@ public static class Library
         Basic = 1,
         Border = 2,
         Square = 3,
-        ArcUp = 4,
-        ArcDown = 5,
-        AngleZero = 6,
-        AngleOne = 7,
-        AngleTwo = 8,
-        AngleThree = 9,
-        Ex = 10,
-        Cross = 11,
-        Obelisk = 12,
-        RingRim = 13
+        Arc = 4,
+        Angle = 5,
+        Ex = 6,
+        Cross = 7,
+        Obelisk = 8,
+        RingRim = 9
     }
 
     public enum Patterns
     {
         Square = 3,
-        ArcUp = 4,
-        ArcDown = 5,
-        AngleZero = 6,
-        AngleOne = 7,
-        AngleTwo = 8,
-        AngleThree = 9,
-        Ex = 10,
-        Cross = 11
+        Arc = 4,
+        Angle = 5,
+        Ex = 6,
+        Cross = 7
     }
     public static int[,] GetType(int typeNumber)
     {
-        if (typeNumber > Enum.GetNames(typeof(Patterns)).Length)
+        if (typeNumber > Enum.GetNames(typeof(Patterns)).Length + 3)
         {
             throw new ArgumentException($"No such Pattern - index {typeNumber}");
         }
 
-        int [,] pattern = new int[0,0];
+        int[,] pattern = new int[0, 0];
         switch (typeNumber)
         {
             case (int)Patterns.Square:
                 pattern = Square();
                 break;
-            case (int)Patterns.ArcUp:
-                pattern = DiagonalUp();
+            case (int)Patterns.Arc:
+                pattern = Arc();
                 break;
-            case (int)Patterns.ArcDown:
-                pattern = DiagonalDown();
-                break;
-            case (int)Patterns.AngleZero:
-                pattern = AngleZero();
-                break;
-            case (int)Patterns.AngleOne:
-                pattern = AngleOne();
-                break;
-            case (int)Patterns.AngleTwo:
-                pattern = AngleTwo();
-                break;
-            case (int)Patterns.AngleThree:
-                pattern = AngleThree();
+            case (int)Patterns.Angle:
+                pattern = Angle();
                 break;
             case (int)Patterns.Ex:
                 pattern = Exes();
@@ -107,17 +87,7 @@ public static class Library
         return pattern;
     }
 
-    public static int[,] DiagonalDown()
-    {
-        int[,] pattern = new int[,] {
-            {1, 0},
-            {0, 1}
-        };
-
-        return pattern;
-    }
-
-    public static int[,] DiagonalUp()
+    public static int[,] Arc()
     {
         int[,] pattern = new int[,] {
             {0, 1},
@@ -127,41 +97,11 @@ public static class Library
         return pattern;
     }
 
-    public static int[,] AngleZero()
+    public static int[,] Angle()
     {
         int[,] pattern = new int[,] {
             {0, 1},
             {1, 1}
-        };
-
-        return pattern;
-    }
-
-    public static int[,] AngleOne()
-    {
-        int[,] pattern = new int[,] {
-            {1, 0},
-            {1, 1}
-        };
-
-        return pattern;
-    }
-
-    public static int[,] AngleTwo()
-    {
-        int[,] pattern = new int[,] {
-            {1, 1},
-            {0, 1}
-        };
-
-        return pattern;
-    }
-
-    public static int[,] AngleThree()
-    {
-        int[,] pattern = new int[,] {
-            {1, 1},
-            {1, 0}
         };
 
         return pattern;
@@ -175,5 +115,11 @@ public static class Library
         };
 
         return pattern;
+    }
+
+    public int[] GetAngles()
+    {
+        // HERE
+        return null;
     }
 }
