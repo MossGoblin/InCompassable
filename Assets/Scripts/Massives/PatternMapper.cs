@@ -9,8 +9,8 @@ public static class PatternMapper
         List<(int, int)> result = new List<(int, int)>();
         List<(int, int)> countedPositions = new List<(int, int)>();
 
-        int width = grid.GetLength(0);
-        int depth = grid.GetLength(1);
+
+        (int width, int depth) = Grids.Dim(grid);
 
         int patternWidth = pattern.GetLength(0);
         int patternDepth = pattern.GetLength(1);

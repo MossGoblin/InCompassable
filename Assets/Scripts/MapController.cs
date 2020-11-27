@@ -17,13 +17,14 @@ public class MapController : MonoBehaviour
     [Header("Prefabs")]
     public Transform floor;
     public List<Transform> mapElements;
-    private Dictionary<Vector3, Library.Patterns> massives;
 
     // Refs
     [Header("Refs")]
     public Transform floorHolder;
     public Transform mapHolder;
     public Transform pathFinder;
+    public Transform libraryTransform;
+    private Library library;
 
     // Dimensions
     [Header("Grid")]
@@ -68,8 +69,9 @@ public class MapController : MonoBehaviour
     private Cell[,] gridCells; // used for density distrubution - // HERE USED
     private int[,] gridBase; // base grid - only empty and full // HERE USED
     private int[,] gridMassives; // positions of all special massives // HERE USED
-    private bool[,] gridLock;
-    public int[,] finalGrid; // final grid with all basics and massives
+    public int[,] gridAngles; // angles for each found massive // HERE USED
+    private bool[,] gridLock; // locks cells for modification when placing massives // HERE USED
+    public int[,] finalGrid; // final grid with all basics and massives // HERE USED
 
     // Secondary grids
     private int[,] gridBorders;
@@ -78,6 +80,7 @@ public class MapController : MonoBehaviour
 
     public void Start()
     {
+        Init();
         CheckRandom();
         SetUpMode();
         // Create the map
@@ -85,6 +88,11 @@ public class MapController : MonoBehaviour
         // DBG player spawn plug
         Debug.Log("Placing players");
         PositionPlayers();
+    }
+
+    private void Init()
+    {
+        library = libraryTransform.GetComponent<Library>();
     }
 
     private void CheckRandom()
@@ -152,7 +160,7 @@ public class MapController : MonoBehaviour
 
         (workingGrid, gridLock) = CreateSplotches(workingGrid, gridLock); // add splotches
 
-        (workingGrid, gridLock) = MarkPatterns(workingGrid, gridLock); // mark all patterns
+        (workingGrid, gridLock, gridAngles) = MarkPatterns(workingGrid, gridLock, gridAngles); // mark all patterns
 
         finalGrid = new int[width, depth];
         finalGrid = Grids.Copy(workingGrid);
@@ -185,6 +193,8 @@ public class MapController : MonoBehaviour
 
         // Massives to be added to the map
         gridMassives = new int[width, depth];
+        // Angles for each massive - only the origin is marked; teh value is the angle
+        gridAngles = new int[width, depth];
 
         gridLock = new bool[width, depth];  // locks positions for use  to prevent overlapping of massives -- true = used
 
@@ -196,9 +206,6 @@ public class MapController : MonoBehaviour
 
         // Init object grid
         gridElements = new Transform[width, depth];
-
-        massives = new Dictionary<Vector3, Library.Patterns>(); // DBG used??
-
     }
     private void CreateBasicGrid()
     {
@@ -216,14 +223,14 @@ public class MapController : MonoBehaviour
 
     private (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock)
     {
-        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)Library.Massives.Border);
+        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)Library.Elements.Border);
 
         return (grid, gridLock);
     }
 
     private void AddBordersToMassives()
     {
-        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)Library.Massives.Border, (int)Library.Massives.Border);
+        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)Library.Elements.Border, (int)Library.Elements.Border);
     }
 
     private (int[,], bool[,]) CreateSplotches(int[,] grid, bool[,] gridLock)
@@ -301,8 +308,7 @@ public class MapController : MonoBehaviour
             {
                 if (grid[countW, countD] == 1) // if there is a block
                 {
-                    // MarkPosition(grid, countW, countD, (int)Library.Massives.RingRim); // mark splotch rim
-                    grid[countW, countD] = (int)Library.Massives.RingRim;
+                    grid[countW, countD] = (int)Library.Elements.RingRim;
                     gridLock[countW, countD] = true;
 
                 }
@@ -311,47 +317,66 @@ public class MapController : MonoBehaviour
             {
                 grid[countW, countD] = 0;
                 gridLock[countW, countD] = true;
-                // MarkPosition(grid, countW, countD, 0); // empty splotch radius - mark as 100 for 'to be avoided'
             }
         }
 
-        grid[posW, posD] = (int)Library.Massives.Obelisk;
-        // MarkPosition(grid, posW, posD, (int)Library.Massives.Obelisk); // mark splotch center
+        grid[posW, posD] = (int)Library.Elements.Obelisk;
 
         return (grid, gridLock);
     }
 
-    private (int[,], bool[,]) MarkPatterns(int[,] grid, bool[,] gridLock)
+    private (int[,], bool[,], int[,]) MarkPatterns(int[,] grid, bool[,] gridLock, int[,] gridAngles)
     {
         int[,] pattern;
 
-        foreach (int index in Enum.GetValues(typeof(Library.Patterns)))
+        foreach (int index in Enum.GetValues(typeof(Library.Elements)))
         {
-            if (!patternChecks[index - 3])
+            if (index < 3  || !patternChecks[index - 3])
             {
                 continue;
             }
 
             Debug.Log($"Marking pattern {index - 3}");
 
-            pattern = Library.GetType(index);
-            List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
-            foreach ((int width, int depth) position in patternPositions)
+            int[] angles = library.GetAngles(index);
+            // there are more than 1 angles for this pattern
+            foreach (int angle in angles)
             {
-                Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
-                grid[position.width, position.depth] = index;
+                pattern = library.GetType(index);
+                pattern = RotatePattern(pattern, angle);
+                List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
+                foreach ((int width, int depth) position in patternPositions)
+                {
+                    Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
+                    grid[position.width, position.depth] = index;
+                    gridAngles[position.width, position.depth] = angle;
+                }
             }
         }
 
-        return (grid, gridLock);
+        return (grid, gridLock, gridAngles);
     }
+
+    private int[,] RotatePattern(int[,] pattern, int angle)
+    {
+        (int width, int depth) = Grids.Dim(pattern);
+        int[,] rotatedPattern = Grids.Blank(pattern);
+
+        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        {
+            rotatedPattern[countD, width - countW - 1] = pattern[countW, countD];
+        }
+
+        return rotatedPattern;
+    }
+
     private Cell[,] CreateCellsGrid(int floorCellWidth, int floorCellDepth)
     {
         Cell[,] gridCells = new Cell[floorCellWidth, floorCellDepth];
 
         foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
-            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Massives.Basic);
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Elements.Basic);
         }
 
         return gridCells;
@@ -374,8 +399,7 @@ public class MapController : MonoBehaviour
             Destroy(obj.gameObject);
         }
 
-        int width = gridElements.GetLength(0);
-        int depth = gridElements.GetLength(1);
+        (int width, int depth) = Grids.Dim(finalGrid);
 
         gridFloor = new Transform[width, depth];
         gridElements = new Transform[width, depth];
@@ -405,7 +429,12 @@ public class MapController : MonoBehaviour
             // {
             //     Debug.Log($"obj at: {countW}/{countD} -- {grid[countW, countD]}");
             // }
-            obj = mapElements[grid[countW, countD]];
+
+            // DBG Trying with the collection
+            // obj = mapElements[grid[countW, countD]];
+            int index = grid[countW, countD];
+            obj = library.elementPool[index].prefab;
+            
 
             int positionX = countW;
             int positionY = countD;

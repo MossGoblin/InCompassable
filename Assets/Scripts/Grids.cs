@@ -20,8 +20,6 @@ public static class Grids
                 int posD = countD * cellRows + cellD;
                 int value = currentCell.Grid()[cellW, cellD];
                 gridBase[posW, posD] = value;
-                // TODO MarkPosition
-                // MarkPosition(posW, posD, value, value, false);
             }
         }
 
@@ -32,9 +30,7 @@ public static class Grids
 
     public static (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock, int index)
     {
-        // TODO MarkPosition
-        int width = grid.GetLength(0);
-        int depth = grid.GetLength(1);
+        (int width, int depth) = Grids.Dim(grid);
         int podW = 0;
         int posD = 0;
         for (int countW = 0; countW < grid.GetLength(0); countW += 1)
@@ -126,8 +122,7 @@ public static class Grids
             throw new ArgumentException("Grid dimentions don't match");
         }
 
-        int width = gridBase.GetLength(0);
-        int depth = gridBase.GetLength(1);
+        (int width, int depth) = Grids.Dim(gridBase);
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
@@ -150,8 +145,7 @@ public static class Grids
             throw new ArgumentException("Grid dimentions don't match");
         }
 
-        int width = gridBase.GetLength(0);
-        int depth = gridBase.GetLength(1);
+        (int width, int depth) = Grids.Dim(gridBase);
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
@@ -173,8 +167,7 @@ public static class Grids
             throw new ArgumentException("Grid dimentions don't match");
         }
 
-        int width = gridBase.GetLength(0);
-        int depth = gridBase.GetLength(1);
+        (int width, int depth) = Grids.Dim(gridBase);
 
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
@@ -204,8 +197,7 @@ public static class Grids
 
     internal static int[,] AddNbrs(int[,] grid, int minCount)
     {
-        int width = grid.GetLength(0);
-        int depth = grid.GetLength(1);
+        (int width, int depth) = Grids.Dim(grid);
 
         int[,] result = Copy(grid);
 
@@ -256,8 +248,8 @@ public static class Grids
 
     internal static int[,] Flatten(int[,] grid, int flat)
     {
-        int width = grid.GetLength(0);
-        int depth = grid.GetLength(1);
+        (int width, int depth) = Grids.Dim(grid);
+
         int[,] result = new int[width, depth];
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
@@ -272,5 +264,16 @@ public static class Grids
         }
 
         return result;
+    }
+
+    internal static (int width, int depth) Dim(int[,] grid)
+    {
+        return (grid.GetLength(0), grid.GetLength(1));
+    }
+
+    internal static int[,] Blank(int[,] grid)
+    {
+        (int width, int depth) = Dim(grid);
+        return new int[width, depth];
     }
 }
