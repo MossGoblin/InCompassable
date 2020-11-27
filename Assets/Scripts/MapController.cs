@@ -84,7 +84,7 @@ public class MapController : MonoBehaviour
         CreateMap();
         // DBG player spawn plug
         Debug.Log("Placing players");
-        // PositionPlayers();
+        PositionPlayers();
     }
 
     private void CheckRandom()
@@ -105,9 +105,7 @@ public class MapController : MonoBehaviour
     {
         // if (Input.GetKeyDown(KeyCode.Space))
         // {
-        //     CreateNbrsGrid();
-        //     CollapseGrids();
-        //     ColorizeGrid();
+
         // }
     }
     public void SetUpMode()
@@ -156,8 +154,8 @@ public class MapController : MonoBehaviour
 
         (workingGrid, gridLock) = MarkPatterns(workingGrid, gridLock); // mark all patterns
 
-        int[,] finalGrid = Grids.Copy(workingGrid);
-        // (finalGrid, gridLock) = OverlayGrids(workingGrid, gridLock);
+        finalGrid = new int[width, depth];
+        finalGrid = Grids.Copy(workingGrid);
 
         MaterializeFloor(finalGrid);
 
@@ -467,7 +465,8 @@ public class MapController : MonoBehaviour
 
     private void PositionPlayers()
     {
-        pathFinder.GetComponent<PathFinder>().CreateSpawns(finalGrid, maxPointDeviation);
+        int[,] floodGrid = Grids.Flatten(finalGrid, 0);
+        pathFinder.GetComponent<PathFinder>().CreateSpawns(floodGrid, maxPointDeviation);
     }
 
     private void ClearOutOfRangeObstacles()

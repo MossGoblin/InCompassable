@@ -4,6 +4,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using Itr = ToolBox.Itr;
 
 public class PathFinder : MonoBehaviour
 {
@@ -44,13 +45,10 @@ public class PathFinder : MonoBehaviour
         }
 
         int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
-        // The grid needs to be reverse
-        for (int cols = 0; cols < floodGrid.GetLength(0); cols++)
+        // The grid needs to be reversed
+        foreach ((int cols, int rows) in Itr.Iteration(grid.GetLength(0), grid.GetLength(1)))
         {
-            for (int rows = 0; rows < floodGrid.GetLength(1); rows++)
-            {
-                floodGrid[cols, rows] = 1;
-            }
+            floodGrid[cols, rows] = 1;
         }
 
         // Get the list into a grid
@@ -94,7 +92,7 @@ public class PathFinder : MonoBehaviour
         playerTwo.transform.position = rightSeedPoint;
         playerTwo.gameObject.SetActive(true);
         //end.parent = spawnPoints;
-        
+
         Debug.Log($"SeedPoint One at: {leftSeedPoint}");
         Debug.Log($"SeedPoint One at: {rightSeedPoint}");
         Debug.Log($"Player One at: {playerOne.transform.position.x} / {playerOne.transform.position.z}");
@@ -150,9 +148,9 @@ public class PathFinder : MonoBehaviour
     {
         int positionWidth = (int)initPoint.x;
         int positionDepth = (int)initPoint.z;
-        bool searching = true;
         if (!AccessibleSpot(grid, new Vector3(positionWidth, 0, positionDepth))) // if not accessible
         {
+            bool searching = true;
             int searchRadius = 1;
             bool found = false;
             while (searching)
@@ -172,7 +170,7 @@ public class PathFinder : MonoBehaviour
 
                 // iterate area perimeter:
                 // the map gives W coordinate directly
-                // D coordinate lead with searchRadius steps
+                // D coordinate leads with searchRadius steps
 
                 for (int countC = 0; countC < coordinateMap.Length - searchRadius; countC += 1)
                 {
@@ -242,7 +240,7 @@ public class PathFinder : MonoBehaviour
                 continue;
             }
             // if nbr is occupied
-            if (floor.finalGrid[width + posW, depth + posD] == 1)
+            if (grid[width + posW, depth + posD] == 1)
             {
                 continue;
             }
@@ -251,16 +249,16 @@ public class PathFinder : MonoBehaviour
         }
 
         // FIXME diagonal nbrs
-        // for (int countW = -1; countW < 2; countW += 2)
-        // {
-        //     for (int countD = -1; countD < 2; countD += 2)
-        //     {
-        //         if (floor.finalGrid[width + countW, depth + countD] == 1)
-        //         {
-        //             freeNbrsDia += 1;
-        //         }
-        //     }
-        // }
+        for (int countW = -1; countW < 2; countW += 2)
+        {
+            for (int countD = -1; countD < 2; countD += 2)
+            {
+                if (floor.finalGrid[width + countW, depth + countD] == 1)
+                {
+                    freeNbrsDia += 1;
+                }
+            }
+        }
 
         if (freeNbrsOrt >= minFreeNbrsOrt && freeNbrsDia >= minFreeNbrsDia)
         {
