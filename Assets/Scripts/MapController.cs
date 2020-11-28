@@ -24,7 +24,7 @@ public class MapController : MonoBehaviour
     public Transform mapHolder;
     public Transform pathFinder;
     public Transform libraryTransform;
-    private Library library;
+    private LibraryElements library;
 
     // Dimensions
     [Header("Grid")]
@@ -89,10 +89,15 @@ public class MapController : MonoBehaviour
         Debug.Log("Placing players");
         PositionPlayers();
     }
+    public void Update()
+    {
+        ClearOutOfRangeObstacles();
+        HandleInput();
+    }
 
     private void Init()
     {
-        library = libraryTransform.GetComponent<Library>();
+        library = libraryTransform.GetComponent<LibraryElements>();
     }
 
     private void CheckRandom()
@@ -104,11 +109,6 @@ public class MapController : MonoBehaviour
         Random.InitState(seed);
     }
 
-    public void Update()
-    {
-        ClearOutOfRangeObstacles();
-        HandleInput();
-    }
     private void HandleInput()
     {
         // if (Input.GetKeyDown(KeyCode.Space))
@@ -223,14 +223,14 @@ public class MapController : MonoBehaviour
 
     private (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock)
     {
-        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)Library.Elements.Border);
+        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)LibraryElements.Elements.Border);
 
         return (grid, gridLock);
     }
 
     private void AddBordersToMassives()
     {
-        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)Library.Elements.Border, (int)Library.Elements.Border);
+        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)LibraryElements.Elements.Border, (int)LibraryElements.Elements.Border);
     }
 
     private (int[,], bool[,]) CreateSplotches(int[,] grid, bool[,] gridLock)
@@ -308,7 +308,7 @@ public class MapController : MonoBehaviour
             {
                 if (grid[countW, countD] == 1) // if there is a block
                 {
-                    grid[countW, countD] = (int)Library.Elements.RingRim;
+                    grid[countW, countD] = (int)LibraryElements.Elements.RingRim;
                     gridLock[countW, countD] = true;
 
                 }
@@ -320,7 +320,7 @@ public class MapController : MonoBehaviour
             }
         }
 
-        grid[posW, posD] = (int)Library.Elements.Obelisk;
+        grid[posW, posD] = (int)LibraryElements.Elements.Obelisk;
 
         return (grid, gridLock);
     }
@@ -329,26 +329,27 @@ public class MapController : MonoBehaviour
     {
         int[,] pattern;
 
-        foreach (int index in Enum.GetValues(typeof(Library.Elements)))
+        int[] indexOrder = new int[] { 7, 6, 5, 4, 3 };
+        for (int count = 0; count < indexOrder.Length; count++)
+        // foreach (int index in Enum.GetValues(typeof(Library.Elements)))
         {
-            if (index < 3  || !patternChecks[index - 3] || !library.elementPool[index].hasPattern)
+            int index = indexOrder[count];
+            if (index < 3 || !patternChecks[index - 3] || !library.elementPool[index].hasPattern)
             {
                 continue;
             }
 
-            Debug.Log($"Marking element {index}");
-
-            int[] angles = Library.GetAngles(index);
+            int[] angles = LibraryElements.GetAngles(index);
             // there are more than 1 angles for this pattern
             foreach (int angle in angles)
             {
-                pattern = Library.GetPattern(index);
+                pattern = LibraryElements.GetPattern(index);
                 pattern = RotatePattern(pattern, angle);
                 List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
-                Debug.Log($"found {patternPositions.Count}");
+                Debug.Log($"Found elements: {index} / {patternPositions.Count}");
                 foreach ((int width, int depth) position in patternPositions)
                 {
-                    // Debug.Log($"ptrn {index - 3}: {position.width}/{position.depth}");
+                    Debug.Log($"ptrn {index}: {position.width}/{position.depth}");
                     grid[position.width, position.depth] = index;
                     gridAngles[position.width, position.depth] = angle;
                 }
@@ -377,7 +378,7 @@ public class MapController : MonoBehaviour
 
         foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
-            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)Library.Elements.Basic);
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)LibraryElements.Elements.Basic);
         }
 
         return gridCells;
@@ -405,10 +406,14 @@ public class MapController : MonoBehaviour
         gridFloor = new Transform[width, depth];
         gridElements = new Transform[width, depth];
 
+        // Get Biome Index
+
 
         // place floor everywhere
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
+            int biomeIndex = gridBiomes[countW, countD];
+            Transform floor = library.GetElement(biomeIndex, 0);
             gridElements[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
             // gridFloor[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
 
@@ -433,16 +438,18 @@ public class MapController : MonoBehaviour
 
             // DBG Trying with the collection
             // obj = mapElements[grid[countW, countD]];
-            int index = grid[countW, countD];
-            obj = library.elementPool[index].prefab; // FIXME
-            
+            int biomeIndex = gridBiomes[countW, countD];
+            int elementIndex = grid[countW, countD];
+            obj = library.GetElement(biomeIndex, elementIndex);
+            // obj = library.elementPool[elementIndex].prefab; // FIXME
+
 
             int positionX = countW;
             int positionY = countD;
             Quaternion rotation = Quaternion.identity;
             Vector3 position = new Vector3(positionX, 0, positionY);
 
-            position = new Vector3(positionX + 0.5f, 0, positionY + 0.5f);
+            // position = new Vector3(positionX + 0.5f, 0, positionY + 0.5f);
             // obj.GetChild(0).transform.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
             gridElements[positionX, positionY] = Instantiate(obj, position, rotation);
             gridElements[positionX, positionY].parent = mapHolder;

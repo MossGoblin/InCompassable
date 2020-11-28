@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2575989350596482572
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2575989350596482570}
+  - component: {fileID: 2575989350596482573}
+  m_Layer: 0
+  m_Name: StoneForest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2575989350596482570
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575989350596482572}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 57.51027, y: -4.2681847, z: 21.904207}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2575989350596482573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2575989350596482572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dca2f91b838dc1b4586352eed083cd05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  name: 0
+  color: {r: 0.6698113, g: 0.22432362, b: 0.22432362, a: 0}
+  elements:
+  - {fileID: 6286642121233564808, guid: 170626303a7aa164e86315a051fe7470, type: 3}
+  - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
+  - {fileID: 2109063719955871463, guid: 45ade739587999d4d912a71dc3d6238e, type: 3}
+  - {fileID: 1936432019998539517, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
+  - {fileID: 7256200799150049863, guid: a5edd2548a59d754ebf8078c92ccef0e, type: 3}
+  - {fileID: 8780978241184800233, guid: c78a976380d85b044a7f481233e92837, type: 3}
+  - {fileID: 4925530272361551128, guid: 84146c8194fca5b4090a9de3b1d677f4, type: 3}
+  - {fileID: 4925530272361551128, guid: ab66bea66718c34479d6d4295bcb381b, type: 3}
+  - {fileID: 4592067654184437547, guid: f9f11ce8f2f54574b9f028e7a5838de4, type: 3}
+  - {fileID: 8823483675982783871, guid: a6a7c7d9bb27ea446af549acbd038583, type: 3}

@@ -1,13 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Itr = ToolBox.Itr;
 
-public class Library : MonoBehaviour
+public class LibraryElements : MonoBehaviour
 {
     public Dictionary<int, Element> elementPool;
     [SerializeField] private Transform[] elementPrefabs;
+    [SerializeField] private Transform biomeLibrary;
+    // Biomes
+  
+
     // Element Types
     public enum Elements
     {
@@ -25,7 +28,7 @@ public class Library : MonoBehaviour
 
     public struct Element
     {
-        public Library.Elements name;
+        public LibraryElements.Elements name;
         public int index;
         public int width;
         public int depth;
@@ -202,7 +205,7 @@ public class Library : MonoBehaviour
         return (int)massive;
     }
 
-    
+
     public static int[] GetAngles(int typeNumber)
     {
         if (typeNumber > Enum.GetNames(typeof(Elements)).Length + 3)
@@ -231,5 +234,10 @@ public class Library : MonoBehaviour
         }
 
         return angles;
+    }
+
+    public Transform GetElement(int biomeIndex, int elementIndex)
+    {
+        return biomeLibrary.GetComponent<LibraryBiomes>().GetElement(biomeIndex, elementIndex);
     }
 }

@@ -257,8 +257,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c5a400d8539d054f8b0c3d9a55fa726, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  seed: 400944
-  useSeed: 1
+  seed: 528498
+  useSeed: 0
   floor: {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
   mapElements:
   - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
@@ -299,7 +299,7 @@ MonoBehaviour:
   - {r: 0.69068784, g: 0.6981132, b: 0.31941974, a: 0}
   - {r: 0.2772339, g: 0.6603774, b: 0.34334493, a: 0}
   - {r: 0.6603774, g: 0.48756328, b: 0.2834639, a: 0}
-  patternChecks: 0101010100000000
+  patternChecks: 0101010101000000
 --- !u!4 &303587016
 Transform:
   m_ObjectHideFlags: 0
@@ -1028,6 +1028,51 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1807263455}
   m_CullTransparentMesh: 0
+--- !u!1 &1837344229
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1837344231}
+  - component: {fileID: 1837344230}
+  m_Layer: 0
+  m_Name: BiomesLibrary
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1837344230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1837344229}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1069070009ca44944b6ae69c9e5415df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  biomes:
+  - {fileID: 2575989350596482570, guid: 88aada27c2b3f284fb18f9dbc1228475, type: 3}
+--- !u!4 &1837344231
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1837344229}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 57.51027, y: -4.2681847, z: 21.904207}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1897758445
 GameObject:
   m_ObjectHideFlags: 0
@@ -1040,7 +1085,7 @@ GameObject:
   - component: {fileID: 1897758446}
   - component: {fileID: 1897758448}
   m_Layer: 0
-  m_Name: Library
+  m_Name: ElementsLibrary
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1085,7 +1130,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   elementPrefabs:
-  - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
+  - {fileID: 6286642121233564808, guid: 170626303a7aa164e86315a051fe7470, type: 3}
   - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
   - {fileID: 2109063719955871463, guid: 45ade739587999d4d912a71dc3d6238e, type: 3}
   - {fileID: 1936432019998539517, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
@@ -1095,6 +1140,7 @@ MonoBehaviour:
   - {fileID: 4925530272361551128, guid: ab66bea66718c34479d6d4295bcb381b, type: 3}
   - {fileID: 4592067654184437547, guid: f9f11ce8f2f54574b9f028e7a5838de4, type: 3}
   - {fileID: 8823483675982783871, guid: a6a7c7d9bb27ea446af549acbd038583, type: 3}
+  biomeLibrary: {fileID: 1837344231}
 --- !u!1 &2123388021
 GameObject:
   m_ObjectHideFlags: 0
