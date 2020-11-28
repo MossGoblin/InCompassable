@@ -8,6 +8,7 @@ public class PrjMap : MonoBehaviour
 {
 
 
+    public bool squircleMap;
     // prefabs
     public Transform pfBlock;
     public Transform pfFloor;

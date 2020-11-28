@@ -114,7 +114,7 @@ public class Map : MonoBehaviour
             Vector3 position = GetPosition(background, angle, radius);
             newIcon.localPosition = position;
             iconMap.Add(ping, newIcon);
-            Debug.Log(ping.position);
+            // Debug.Log(ping.position);
             // DBG
             counter ++;
         }
