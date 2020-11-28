@@ -39,6 +39,5 @@ public class PlayerMover : MonoBehaviour
         controller.Move(moveSpeed * Time.deltaTime * move);
 
         transform.Rotate(0, horMove * turnSpeed, 0);
-
     }
 }
