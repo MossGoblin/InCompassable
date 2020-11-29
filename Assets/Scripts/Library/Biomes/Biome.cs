@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Biome : MonoBehaviour
 {
-    [SerializeField] private LibraryBiomes.Biomes name;
+    [SerializeField] private BiomesLibrary.Biomes name;
     [SerializeField] private Color color;
     [SerializeField] private ElementSet[] elements; // one set for each element
  
@@ -15,14 +15,14 @@ public class Biome : MonoBehaviour
 
     private void CheckInventory()
     {
-        int numberOfElements = LibraryElements.GetNumberOfElements();
+        int numberOfElements = ElementsLibrary.GetNumberOfElements();
         if (elements.Length < numberOfElements)
         {
             Debug.LogError($"Biome {name} does not define enough elements");
         }
     }
 
-    public Transform GetElement(LibraryElements.Elements elementName)
+    public Transform GetElement(ElementsLibrary.Elements elementName)
     {
         int elementNumber = (int)elementName;
         return GetElement(elementNumber);

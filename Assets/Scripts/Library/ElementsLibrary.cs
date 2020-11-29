@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Itr = ToolBox.Itr;
 
-public class LibraryElements : MonoBehaviour
+public class ElementsLibrary : MonoBehaviour
 {
     public Dictionary<int, Element> elementPool;
     // [SerializeField] private Transform[] elementPrefabs; // OBS
@@ -27,7 +27,7 @@ public class LibraryElements : MonoBehaviour
 
     public struct Element
     {
-        public LibraryElements.Elements name;
+        public ElementsLibrary.Elements name;
         public int index;
         public int width;
         public int depth;
@@ -231,6 +231,6 @@ public class LibraryElements : MonoBehaviour
 
     public Transform GetElement(int biomeIndex, int elementIndex)
     {
-        return biomeLibrary.GetComponent<LibraryBiomes>().GetElement(biomeIndex, elementIndex);
+        return biomeLibrary.GetComponent<BiomesLibrary>().GetElement(biomeIndex, elementIndex);
     }
 }

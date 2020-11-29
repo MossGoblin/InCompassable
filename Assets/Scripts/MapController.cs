@@ -24,7 +24,7 @@ public class MapController : MonoBehaviour
     public Transform mapHolder;
     public Transform pathFinder;
     public Transform libraryTransform;
-    private LibraryElements library;
+    private ElementsLibrary library;
 
     // Dimensions
     [Header("Grid")]
@@ -46,12 +46,16 @@ public class MapController : MonoBehaviour
 
     // Players
     [Header("Players")]
-    public Transform playerOne;
-    public Transform playerTwo;
+    public Transform[] players;
     public bool visionRange;
     public float visibilityDistance;
     [Range(0.1f, 0.45f)]
     public float maxPointDeviation = 0.2f;
+
+    
+    [Header("Canvas")]
+    [SerializeField] private RenderTexture leftScreen;
+    [SerializeField] private RenderTexture rightScreen;
 
     [Header("Checks")]
     public int mode;
@@ -91,13 +95,13 @@ public class MapController : MonoBehaviour
     }
     public void Update()
     {
-        ClearOutOfRangeObstacles();
+        // ClearOutOfRangeObstacles();
         HandleInput();
     }
 
     private void Init()
     {
-        library = libraryTransform.GetComponent<LibraryElements>();
+        library = libraryTransform.GetComponent<ElementsLibrary>();
     }
 
     private void CheckRandom()
@@ -223,14 +227,14 @@ public class MapController : MonoBehaviour
 
     private (int[,], bool[,]) CreateBordersGrid(int[,] grid, bool[,] gridLock)
     {
-        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)LibraryElements.Elements.Border);
+        (grid, gridLock) = Grids.CreateBordersGrid(grid, gridLock, (int)ElementsLibrary.Elements.Border);
 
         return (grid, gridLock);
     }
 
     private void AddBordersToMassives()
     {
-        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)LibraryElements.Elements.Border, (int)LibraryElements.Elements.Border);
+        gridMassives = Grids.ApplyMaskIndex(gridMassives, gridLock, gridBorders, (int)ElementsLibrary.Elements.Border, (int)ElementsLibrary.Elements.Border);
     }
 
     private (int[,], bool[,]) CreateSplotches(int[,] grid, bool[,] gridLock)
@@ -308,7 +312,7 @@ public class MapController : MonoBehaviour
             {
                 if (grid[countW, countD] == 1) // if there is a block
                 {
-                    grid[countW, countD] = (int)LibraryElements.Elements.RingRim;
+                    grid[countW, countD] = (int)ElementsLibrary.Elements.RingRim;
                     gridLock[countW, countD] = true;
 
                 }
@@ -320,7 +324,7 @@ public class MapController : MonoBehaviour
             }
         }
 
-        grid[posW, posD] = (int)LibraryElements.Elements.Obelisk;
+        grid[posW, posD] = (int)ElementsLibrary.Elements.Obelisk;
 
         return (grid, gridLock);
     }
@@ -339,11 +343,11 @@ public class MapController : MonoBehaviour
                 continue;
             }
 
-            int[] angles = LibraryElements.GetAngles(index);
+            int[] angles = ElementsLibrary.GetAngles(index);
             // there are more than 1 angles for this pattern
             foreach (int angle in angles)
             {
-                pattern = LibraryElements.GetPattern(index);
+                pattern = ElementsLibrary.GetPattern(index);
                 pattern = RotatePattern(pattern, angle);
                 List<(int, int)> patternPositions = PatternMapper.FindPattern(ref grid, ref gridLock, pattern);
                 Debug.Log($"Found elements: {index} / {patternPositions.Count}");
@@ -378,7 +382,7 @@ public class MapController : MonoBehaviour
 
         foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
         {
-            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)LibraryElements.Elements.Basic);
+            gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)ElementsLibrary.Elements.Basic);
         }
 
         return gridCells;
@@ -496,35 +500,43 @@ public class MapController : MonoBehaviour
 
     private void PositionPlayers()
     {
+        // Get Players
         int[,] floodGrid = Grids.Flatten(finalGrid, 0);
-        pathFinder.GetComponent<PathFinder>().CreateSpawns(floodGrid, maxPointDeviation);
+        players = pathFinder.GetComponent<PathFinder>().CreateSpawns(floodGrid, maxPointDeviation);
+
+        // Set up projectin screens
+        players[0].GetComponentInChildren<Camera>().targetTexture = leftScreen;
+        players[1].GetComponentInChildren<Camera>().targetTexture = rightScreen;
+
+        // Set up input // TODO Do it smarter
+        players[1].GetComponent<PlayerMover>().rightPlayer = true;
     }
 
-    private void ClearOutOfRangeObstacles()
-    {
-        if (gridElements == null || visionRange == false)
-        {
-            return;
-        }
-        foreach (Transform obj in gridElements)
-        {
-            if (playerOne != null && playerTwo != null)
-            {
-                float distanceToOne = GetDistance(obj, playerOne);
-                float distanceToTwo = GetDistance(obj, playerTwo);
+    // private void ClearOutOfRangeObstacles()
+    // {
+    //     if (gridElements == null || visionRange == false)
+    //     {
+    //         return;
+    //     }
+    //     foreach (Transform obj in gridElements)
+    //     {
+    //         if (playerOne != null && playerTwo != null)
+    //         {
+    //             float distanceToOne = GetDistance(obj, playerOne);
+    //             float distanceToTwo = GetDistance(obj, playerTwo);
 
-                if (distanceToOne <= visibilityDistance || distanceToTwo <= visibilityDistance)
-                {
-                    obj.transform.gameObject.SetActive(true);
-                }
-                else
-                {
-                    obj.transform.gameObject.SetActive(false);
-                }
-            }
+    //             if (distanceToOne <= visibilityDistance || distanceToTwo <= visibilityDistance)
+    //             {
+    //                 obj.transform.gameObject.SetActive(true);
+    //             }
+    //             else
+    //             {
+    //                 obj.transform.gameObject.SetActive(false);
+    //             }
+    //         }
 
-        }
-    }
+    //     }
+    // }
 
     private float GetDistance(Transform objectOne, Transform objectTwo)
     {

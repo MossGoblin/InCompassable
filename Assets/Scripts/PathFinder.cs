@@ -9,11 +9,9 @@ using Itr = ToolBox.Itr;
 public class PathFinder : MonoBehaviour
 {
     // Refs
-    public Transform playerOne;
-    public Transform playerTwo;
-
-    public MapController floor;
-    public Transform spawnPoints;
+    public MapController mapController;
+    public Transform playerController;
+    public Transform spawnPointsHolder;
 
     public int minFreeNbrsOrt = 4;
     public int minFreeNbrsDia = 0;
@@ -27,8 +25,7 @@ public class PathFinder : MonoBehaviour
     public Node startNode;
     public Node endNode;
 
-
-    public void CreateSpawns(int[,] grid, float maxPointDeviation)
+    public Transform[] CreateSpawns(int[,] grid, float maxPointDeviation)
     {
         // Select an available point for starting the flood
         Vector3 floodPoint = ScoutAround(grid, new Vector3(grid.GetLength(0) / 2, 0, grid.GetLength(1) / 2));
@@ -41,7 +38,7 @@ public class PathFinder : MonoBehaviour
         if (floodPlane.Count < planeSize / 2)
         {
             // Debug.Log($"Flooded only {floodPlane.Count} out of {planeSize} cells");
-            return;
+            return null;
         }
 
         int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
@@ -76,30 +73,18 @@ public class PathFinder : MonoBehaviour
         leftSeedPoint = ScoutAround(floodGrid, leftSeedPoint + new Vector3(randomLeft.x, 0, randomLeft.z));
         rightSeedPoint = ScoutAround(floodGrid, rightSeedPoint + new Vector3(randomRight.x, 0, randomRight.z));
 
-
-        // Select a random point for left start
-
-        // Debug.Log($"left: {leftSeedPoint}");
-        // Debug.Log($"right: {rightSeedpoint}");
-
         // Place markers
-        // Transform start = Instantiate(playerOne, leftSeedPoint, Quaternion.identity);
-        playerOne.transform.position = leftSeedPoint;
-        playerOne.gameObject.SetActive(true);
-        //start.parent = spawnPoints;
+        Transform playerOneTransform = playerController.GetComponent<PlayerController>().GetRandomPlayer();
+        Transform playerTwoTransform = playerController.GetComponent<PlayerController>().GetRandomPlayer();
 
-        // Transform end = Instantiate(playerTwo, rightSeedpoint, Quaternion.identity);
-        playerTwo.transform.position = rightSeedPoint;
-        playerTwo.gameObject.SetActive(true);
-        //end.parent = spawnPoints;
-
-        Debug.Log($"SeedPoint One at: {leftSeedPoint}");
-        Debug.Log($"SeedPoint One at: {rightSeedPoint}");
-        Debug.Log($"Player One at: {playerOne.transform.position.x} / {playerOne.transform.position.z}");
-        Debug.Log($"Player Two at: {playerTwo.transform.position.x} / {playerTwo.transform.position.z}");
+        // Instantiate players
+        Transform playerOne = Instantiate(playerOneTransform, leftSeedPoint, Quaternion.identity, spawnPointsHolder);
+        Transform playerTwo = Instantiate(playerTwoTransform, rightSeedPoint, Quaternion.identity, spawnPointsHolder);
 
         // TODO include a check for same position
         // if the position of the players is the same - there are no 2 different viable starting positions - restart the whole map
+
+        return new Transform[2] {playerOne, playerTwo};
     }
 
 
@@ -121,7 +106,7 @@ public class PathFinder : MonoBehaviour
             flooded.Add(currentPoint);
 
             // get all nbrs of the current point and add the to the dry list if not already flooded
-            List<Vector3> nbrs = floor.GetNbrs(currentPoint);
+            List<Vector3> nbrs = mapController.GetNbrs(currentPoint);
             if (nbrs.Count > 0)
             {
                 foreach (Vector3 nbr in nbrs)
@@ -199,7 +184,7 @@ public class PathFinder : MonoBehaviour
 
     public void DebugColor(Vector3 position, Color color)
     {
-        Transform[] flatGrid = floor.gridElements.Cast<Transform>().ToArray();
+        Transform[] flatGrid = mapController.gridElements.Cast<Transform>().ToArray();
         Transform obj = Array.Find(flatGrid, o => o.transform.position.x == position.x && o.transform.position.z == position.z);
         if (obj != null)
         {
@@ -231,11 +216,11 @@ public class PathFinder : MonoBehaviour
             int posD = pos[count];
             int posW = pos[(count + 3) % 4];
             // check if nbr is in the border
-            if ((depth + posD <= 2) || (depth + posD >= (floor.depth - 2)))
+            if ((depth + posD <= 2) || (depth + posD >= (mapController.depth - 2)))
             {
                 continue;
             }
-            if ((width + posW <= 2) || (width + posW >= (floor.width - 2)))
+            if ((width + posW <= 2) || (width + posW >= (mapController.width - 2)))
             {
                 continue;
             }
@@ -253,7 +238,7 @@ public class PathFinder : MonoBehaviour
         {
             for (int countD = -1; countD < 2; countD += 2)
             {
-                if (floor.finalGrid[width + countW, depth + countD] == 1)
+                if (mapController.finalGrid[width + countW, depth + countD] == 1)
                 {
                     freeNbrsDia += 1;
                 }

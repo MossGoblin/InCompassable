@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LibraryBiomes : MonoBehaviour
+public class BiomesLibrary : MonoBehaviour
 {
     [SerializeField] private Transform[] biomes;
     public enum Biomes
