@@ -21,7 +21,7 @@ public class MapSquircle : MonoBehaviour
     public RectTransform rockIconGreenPF;
 
     [Range(-50f, 50f)]
-    public float buffer = -50f;
+    public float buffer = -25f;
     [SerializeField]
     private float mapRadius;
 
