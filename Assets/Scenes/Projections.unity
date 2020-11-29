@@ -1390,7 +1390,7 @@ MonoBehaviour:
     type: 3}
   rockIconGreenPF: {fileID: 4722089574763117737, guid: 0388b1a4d25f61644aa52dfe837c7e20,
     type: 3}
-  buffer: -50
+  buffer: -25
   mapRadius: 0
 --- !u!1 &1816789429
 GameObject:
