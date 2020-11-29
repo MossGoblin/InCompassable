@@ -6,26 +6,30 @@ public class Biome : MonoBehaviour
 {
     [SerializeField] private LibraryBiomes.Biomes name;
     [SerializeField] private Color color;
-    [SerializeField] private Transform[] elements;
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private ElementSet[] elements; // one set for each element
+ 
+        void Start()
     {
-        
+        CheckInventory();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void CheckInventory()
     {
-        
-    }
-
-    public Transform GetElement(int index)
-    {
-        return elements[index];
+        int numberOfElements = LibraryElements.GetNumberOfElements();
+        if (elements.Length < numberOfElements)
+        {
+            Debug.LogError($"Biome {name} does not define enough elements");
+        }
     }
 
     public Transform GetElement(LibraryElements.Elements elementName)
     {
-        return elements[(int)elementName];
+        int elementNumber = (int)elementName;
+        return GetElement(elementNumber);
+    }
+
+    public Transform GetElement(int elementNumber)
+    {
+        return elements[elementNumber].GetElement();
     }
 }

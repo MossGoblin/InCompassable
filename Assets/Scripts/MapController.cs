@@ -413,9 +413,8 @@ public class MapController : MonoBehaviour
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             int biomeIndex = gridBiomes[countW, countD];
-            Transform floor = library.GetElement(biomeIndex, 0);
+            Transform floor = library.GetElement(biomeIndex, 0); // FIXME Hardcoded biome index 0
             gridElements[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
-            // gridFloor[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
 
         }
 

@@ -397,7 +397,7 @@ MonoBehaviour:
   initRotation: 0
   rightPlayer: 0
   moveSpeed: 3
-  turnSpeed: 2
+  turnSpeed: 1
 --- !u!143 &636448388
 CharacterController:
   m_ObjectHideFlags: 0
@@ -411,8 +411,8 @@ CharacterController:
   serializedVersion: 2
   m_Height: 0.3
   m_Radius: 0.1
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_SlopeLimit: 10
+  m_StepOffset: 0.05
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.2, z: 0}
@@ -483,7 +483,7 @@ MonoBehaviour:
   initRotation: 0
   rightPlayer: 1
   moveSpeed: 3
-  turnSpeed: 2
+  turnSpeed: 1
 --- !u!143 &696888231
 CharacterController:
   m_ObjectHideFlags: 0
@@ -497,11 +497,11 @@ CharacterController:
   serializedVersion: 2
   m_Height: 0.3
   m_Radius: 0.1
-  m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_SlopeLimit: 10
+  m_StepOffset: 0.05
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.6, z: 0}
+  m_Center: {x: 0, y: 0.2, z: 0}
 --- !u!1 &882668947
 GameObject:
   m_ObjectHideFlags: 0

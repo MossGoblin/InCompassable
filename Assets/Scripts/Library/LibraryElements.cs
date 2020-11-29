@@ -6,11 +6,10 @@ using Itr = ToolBox.Itr;
 public class LibraryElements : MonoBehaviour
 {
     public Dictionary<int, Element> elementPool;
-    [SerializeField] private Transform[] elementPrefabs;
+    // [SerializeField] private Transform[] elementPrefabs; // OBS
     [SerializeField] private Transform biomeLibrary;
     // Biomes
   
-
     // Element Types
     public enum Elements
     {
@@ -32,8 +31,6 @@ public class LibraryElements : MonoBehaviour
         public int index;
         public int width;
         public int depth;
-        public Transform prefab;
-
         // pattern
         public bool hasPattern;
         public int[,] pattern;
@@ -41,7 +38,6 @@ public class LibraryElements : MonoBehaviour
         // params
         public int weight;
         public int density;
-        // public int[] angles;
     }
 
     void Awake()
@@ -79,7 +75,6 @@ public class LibraryElements : MonoBehaviour
             element.weight = GetWeight(element.pattern);
             element.density = element.weight / element.width * element.depth;
         }
-        element.prefab = elementPrefabs[element.index];
 
         return element;
 
@@ -98,6 +93,10 @@ public class LibraryElements : MonoBehaviour
         */
     }
 
+    public static int GetNumberOfElements()
+    {
+        return Enum.GetNames(typeof(Elements)).Length;
+    }
     public static int[,] GetPattern(int typeNumber)
     {
         if (typeNumber > Enum.GetNames(typeof(Elements)).Length + 3)
@@ -193,12 +192,6 @@ public class LibraryElements : MonoBehaviour
 
         return counter;
     }
-
-    // public int[,] GetPattern(Elements patternName)
-    // {
-    //     int[,] pattern = GetPattern((int)patternName);
-    //     return pattern;
-    // }
 
     public int GetIndex(Elements massive)
     {

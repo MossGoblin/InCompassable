@@ -31,3 +31,16 @@
   - [0 1 0]
   - [1 1 1]
   - [0 1 0]
+
+# Libraries
+## Elements Library
+- keeps a list (enum) of all possible elements
+- keeps a link to the biome library
+- request elements from the biome library by biome index and element index
+
+## Biome Library
+- keeps a list of biomes
+- requests elements from a biome with specific index by element index
+
+## Biome
+- keeps a list of possible elements for each of the possible elements, as defined by the Elements Library
