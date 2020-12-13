@@ -1,16 +1,23 @@
 ﻿# TODOs
 - Figure out rotation of massives - will there be any?
-- **Consolidate** patterns and massives
+- **Consolidate** patterns and massives - DONE ??
 - Shake out obsolete grids - DONE
+- Split visibility into tiers:
+  - (keep in an enum)
+  - alvays visible
+  - visible from large distance (absolute value)
+  - visible from small distance (absolute value)
+  - never visible
+  - map relative visibility (example: 1/4 width)
 
 
 # BIOMES
 
 ## Biome types
-- Dark Forest
-- Stone
 - Bog
+- Dark Forest
 - Enchanted Forest
+- Stone Forest
 - Ruins
 
 ## Type of objects
@@ -43,4 +50,4 @@
 - requests elements from a biome with specific index by element index
 
 ## Biome
-- keeps a list of possible elements for each of the possible elements, as defined by the Elements Library
+- keeps a list of possible prefabs for each of the possible elements, as they are defined by the Elements Library

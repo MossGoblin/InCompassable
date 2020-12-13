@@ -304,7 +304,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   seed: 580282
-  useSeed: 1
+  useSeed: 0
   floor: {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
   mapElements:
   - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
@@ -346,7 +346,7 @@ MonoBehaviour:
   - {r: 0.69068784, g: 0.6981132, b: 0.31941974, a: 0}
   - {r: 0.2772339, g: 0.6603774, b: 0.34334493, a: 0}
   - {r: 0.6603774, g: 0.48756328, b: 0.2834639, a: 0}
-  patternChecks: 0101010100000000
+  patternChecks: 0101010101010101
 --- !u!4 &303587016
 Transform:
   m_ObjectHideFlags: 0
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cf3a8f3601639445bc3dffcb2ce4395, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  setIndex: 0
+  setIndex: 1
   activePlayers: 0
 --- !u!1 &682567328
 GameObject:
@@ -1185,6 +1185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   biomeLibrary: {fileID: 1837344231}
+  iconSet: []
 --- !u!1 &2123388021
 GameObject:
   m_ObjectHideFlags: 0

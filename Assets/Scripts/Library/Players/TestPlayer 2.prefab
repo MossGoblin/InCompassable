@@ -218,6 +218,7 @@ GameObject:
   - component: {fileID: 6678197427707374884}
   - component: {fileID: 6129960529954594784}
   - component: {fileID: 6129960529954594791}
+  - component: {fileID: 5648796954465432485}
   m_Layer: 0
   m_Name: TestPlayer 2
   m_TagString: Untagged
@@ -277,6 +278,19 @@ MonoBehaviour:
   rightPlayer: 0
   moveSpeed: 3
   turnSpeed: 1
+--- !u!114 &5648796954465432485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6678197427707374885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4509a8c933244046adeadba1bce1442, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chirality: 0
 --- !u!1 &6678197428180266519
 GameObject:
   m_ObjectHideFlags: 0

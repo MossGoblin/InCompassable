@@ -186,14 +186,14 @@ public class Map : MonoBehaviour
                 if (grid[countC, countR] == 2)
                 {
                     newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.blue;
-                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconPF);
+                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconPF, ElementsLibrary.VisibilityRanges.Always); // visibility not used in this context
                     pingList.Add(newPoi);
                     newObj.GetChild(0).gameObject.layer = 8;
                 }
                 else if (grid[countC, countR] == 3)
                 {
                     newObj.GetChild(0).GetComponent<MeshRenderer>().material.color = Color.yellow;
-                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconGreenPF);
+                    POI newPoi = new POI(new Vector3(countC, 0, countR), rockIconGreenPF, ElementsLibrary.VisibilityRanges.Always); // visibility not used in this context
                     pingList.Add(newPoi);
                     newObj.GetChild(0).gameObject.layer = 8;
                 }

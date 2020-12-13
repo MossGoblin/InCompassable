@@ -12,9 +12,9 @@ public class PlayerMover : MonoBehaviour
 
     private void Start()
     {
+        rightPlayer = GetComponentInParent<Player>().chirality == 1;
     }
 
-    // Update is called once per frame
     private void Update()
     {
         HandleMovement();

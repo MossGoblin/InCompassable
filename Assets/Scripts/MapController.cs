@@ -52,7 +52,7 @@ public class MapController : MonoBehaviour
     [Range(0.1f, 0.45f)]
     public float maxPointDeviation = 0.2f;
 
-    
+
     [Header("Canvas")]
     [SerializeField] private RenderTexture leftScreen;
     [SerializeField] private RenderTexture rightScreen;
@@ -70,17 +70,18 @@ public class MapController : MonoBehaviour
     [SerializeField] bool[] patternChecks;
 
     // Primary Grids
-    private Cell[,] gridCells; // used for density distrubution - // HERE USED
-    private int[,] gridBase; // base grid - only empty and full // HERE USED
-    private int[,] gridMassives; // positions of all special massives // HERE USED
-    public int[,] gridAngles; // angles for each found massive // HERE USED
-    private bool[,] gridLock; // locks cells for modification when placing massives // HERE USED
-    public int[,] finalGrid; // final grid with all basics and massives // HERE USED
+    private Cell[,] gridCells;
+    private int[,] gridBase;
+    private int[,] gridMassives;
+    public int[,] gridAngles;
+    private bool[,] gridLock;
+    public int[,] finalGrid;
 
     // Secondary grids
     private int[,] gridBorders;
     public Transform[,] gridFloor; // Game Objects for all floor tiles
     public Transform[,] gridElements; // Game Objects for all basics and massives
+    public List<POI> globalPingList;
 
     public void Start()
     {
@@ -102,6 +103,7 @@ public class MapController : MonoBehaviour
     private void Init()
     {
         library = libraryTransform.GetComponent<ElementsLibrary>();
+        globalPingList = new List<POI>();
     }
 
     private void CheckRandom()
@@ -353,7 +355,7 @@ public class MapController : MonoBehaviour
                 Debug.Log($"Found elements: {index} / {patternPositions.Count}");
                 foreach ((int width, int depth) position in patternPositions)
                 {
-                    Debug.Log($"ptrn {index}: {position.width}/{position.depth}");
+                    // Debug.Log($"ptrn {index}: {position.width}/{position.depth}");
                     grid[position.width, position.depth] = index;
                     gridAngles[position.width, position.depth] = angle;
                 }
@@ -407,17 +409,13 @@ public class MapController : MonoBehaviour
 
         (int width, int depth) = Grids.Dim(finalGrid);
 
-        gridFloor = new Transform[width, depth];
-        gridElements = new Transform[width, depth];
-
-        // Get Biome Index
-
+        // gridFloor = new Transform[width, depth]; // OBS
 
         // place floor everywhere
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             int biomeIndex = gridBiomes[countW, countD];
-            Transform floor = library.GetElement(biomeIndex, 0); // FIXME Hardcoded biome index 0
+            Transform floor = library.GetElement(biomeIndex, 0);
             gridElements[countW, countD] = Instantiate(floor, new Vector3(countW, 0, countD), Quaternion.identity, floorHolder);
 
         }
@@ -425,7 +423,9 @@ public class MapController : MonoBehaviour
         // Iterate finalGrid
         // if 0 - skip
         // if not -- place an object
-        // HERE
+
+        // DBG dev check total number of objects
+        int totalObjects = 0;
         foreach ((int countW, int countD) in Itr.Iteration(width, depth))
         {
             Transform obj;
@@ -434,17 +434,10 @@ public class MapController : MonoBehaviour
             {
                 continue;
             }
-            // if (grid[countW, countD] != 0)
-            // {
-            //     Debug.Log($"obj at: {countW}/{countD} -- {grid[countW, countD]}");
-            // }
 
-            // DBG Trying with the collection
-            // obj = mapElements[grid[countW, countD]];
             int biomeIndex = gridBiomes[countW, countD];
             int elementIndex = grid[countW, countD];
             obj = library.GetElement(biomeIndex, elementIndex);
-            // obj = library.elementPool[elementIndex].prefab; // FIXME
 
 
             int positionX = countW;
@@ -452,12 +445,26 @@ public class MapController : MonoBehaviour
             Quaternion rotation = Quaternion.identity;
             Vector3 position = new Vector3(positionX, 0, positionY);
 
-            // position = new Vector3(positionX + 0.5f, 0, positionY + 0.5f);
-            // obj.GetChild(0).transform.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
+            // get object offset from object
             gridElements[positionX, positionY] = Instantiate(obj, position, rotation);
             gridElements[positionX, positionY].parent = mapHolder;
 
+            // HERE create a global PING list
+            // elements - holds the position of the massive, its visibility and its icon
+            // so... a POI object
+
+
+            ElementsLibrary.VisibilityRanges visibilityRange = library.elementPool[elementIndex].visibilityRange;
+            if ((int)visibilityRange != (int)ElementsLibrary.VisibilityRanges.Never)
+            {
+                RectTransform icon = library.GetIcon(elementIndex);
+                POI newPOI = new POI(new Vector3(countW, 0, countD), icon, visibilityRange);
+                globalPingList.Add(newPOI);
+            }
+
+            totalObjects++;
         }
+        Debug.Log($"pingList : {globalPingList.Count} / {totalObjects}");
         Debug.Log("Materialize");
     }
 
@@ -492,7 +499,6 @@ public class MapController : MonoBehaviour
             {
                 continue;
             }
-            // gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = palette.palette[grid[countW, countD]];
             gridElements[countW, countD].GetChild(0).GetComponent<MeshRenderer>().material.color = biomeColors[grid[countW, countD]];
         }
         Debug.Log("Colorize");
@@ -509,34 +515,9 @@ public class MapController : MonoBehaviour
         players[1].GetComponentInChildren<Camera>().targetTexture = rightScreen;
 
         // Set up input // TODO Do it smarter
-        players[1].GetComponent<PlayerMover>().rightPlayer = true;
+        players[0].GetComponent<Player>().chirality = 0;
+        players[1].GetComponent<Player>().chirality = 1;
     }
-
-    // private void ClearOutOfRangeObstacles()
-    // {
-    //     if (gridElements == null || visionRange == false)
-    //     {
-    //         return;
-    //     }
-    //     foreach (Transform obj in gridElements)
-    //     {
-    //         if (playerOne != null && playerTwo != null)
-    //         {
-    //             float distanceToOne = GetDistance(obj, playerOne);
-    //             float distanceToTwo = GetDistance(obj, playerTwo);
-
-    //             if (distanceToOne <= visibilityDistance || distanceToTwo <= visibilityDistance)
-    //             {
-    //                 obj.transform.gameObject.SetActive(true);
-    //             }
-    //             else
-    //             {
-    //                 obj.transform.gameObject.SetActive(false);
-    //             }
-    //         }
-
-    //     }
-    // }
 
     private float GetDistance(Transform objectOne, Transform objectTwo)
     {
@@ -591,19 +572,6 @@ public class MapController : MonoBehaviour
         }
         return nbrs;
     }
-
-
-
-    /// <summary>
-    /// Mark position of a cell for processing
-    /// </summary>
-    /// <remarks>
-    /// posW, posD, object type, empty/block, poi 
-    /// </remarks>
-    // private void MarkPosition(int[,] grid, int posW, int posD, int index)
-    // {
-    //     grid[posW, posD] = index;
-    // }
 
     private int[,] FillGrid(int[,] origin, int value)
     {
