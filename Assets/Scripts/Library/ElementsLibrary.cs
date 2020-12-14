@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Itr = ToolBox.Itr;
 
 public class ElementsLibrary : MonoBehaviour
 {
@@ -200,7 +199,7 @@ public class ElementsLibrary : MonoBehaviour
     private int GetWeight(int[,] pattern)
     {
         int counter = 0;
-        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        foreach ((int countW, int countD) in TB.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             if (pattern[countW, countD] == 1)
             {

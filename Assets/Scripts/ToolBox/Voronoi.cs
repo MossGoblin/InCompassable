@@ -1,5 +1,4 @@
-﻿using UnityEngine;
-using ToolBox;
+using UnityEngine;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
 
@@ -11,7 +10,7 @@ public static class Voronoi
     {
         int[,] grid = new int[width, depth];
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             float minDistance = float.MaxValue;
             int count = 0;

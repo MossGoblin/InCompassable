@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Itr = ToolBox.Itr;
 
 public class PathFinder : MonoBehaviour
 {
@@ -43,7 +42,7 @@ public class PathFinder : MonoBehaviour
 
         int[,] floodGrid = new int[grid.GetLength(0), grid.GetLength(1)];
         // The grid needs to be reversed
-        foreach ((int cols, int rows) in Itr.Iteration(grid.GetLength(0), grid.GetLength(1)))
+        foreach ((int cols, int rows) in TB.Iteration(grid.GetLength(0), grid.GetLength(1)))
         {
             floodGrid[cols, rows] = 1;
         }

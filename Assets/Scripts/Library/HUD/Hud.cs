@@ -13,22 +13,25 @@ public class Hud : MonoBehaviour
     // List of pings to be projected
     private List<POI> pingList;
     //  0 for left, 1 for right
+
+    [SerializeField]
     private int chirality;
     
-    public void SetParity(int chirality)
+    public void SetChirality(int chirality)
     {
         this.chirality = chirality;
     }
 
     void Start()
     {
-        
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // get pingList from hudgroup
-        // pingList = GetComponentInParent<HudController>().GetPingList(chirality);
+    }
+
+    public void UpdatePingList(List<POI> pingList)
+    {
+        this.pingList = pingList;
     }
 }

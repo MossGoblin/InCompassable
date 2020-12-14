@@ -8,34 +8,88 @@ public class HudController : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField]
     private Transform[] huds;
-    public List<Element> globalPOIList;
-    public List<Element>[] playerPingList;
+    public List<POI> globalPingList;
+    public List<Element>[] playerPingList; // OBS ?
     public Transform[] players;
-    void Awake()
+    List<POI> playerOnePingList;
+    List<POI> playerTwoPingList;
+    void Start()
     {
         // INIT
-        // get players
-        // Distribute parity
-        DistributeParity();
+        Init();
+    }
+
+    private void Init()
+    {
+        playerOnePingList = new List<POI>();
+        playerTwoPingList = new List<POI>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // update global ping list
+        // distribute pings to players
+        UpdatePingLists();
+        DistributePingLists();
     }
 
-    private void DistributeParity()
+    private void UpdatePingLists()
     {
-        if (huds[0].transform.position.x < huds[1].transform.position.x)
+        // Update ping lists
+        Vector3 playerOnePosition = players[0].position;
+        Vector3 playerTwoPosition = players[1].position;
+        float playerOneVisionRange = players[0].GetComponent<Player>().visionRange;
+        float playerTwoVisionRange = players[1].GetComponent<Player>().visionRange;
+
+        foreach (POI ping in globalPingList)
         {
-            huds[0].GetComponent<Hud>().SetParity(0);
-            huds[1].GetComponent<Hud>().SetParity(1);
+            bool visible;
+            // player One
+            float distanceToPlayerOne = TB.GetDistance(playerOnePosition, ping.position);
+            visible = (distanceToPlayerOne + (int)ping.visibility) <= playerOneVisionRange;
+            if (visible)
+            {
+                playerOnePingList.Add(ping);
+            }
+
+            // player Two
+            float distanceToPlayerTwo = TB.GetDistance(playerTwoPosition, ping.position);
+            visible = (distanceToPlayerTwo + (int)ping.visibility) <= playerTwoVisionRange;
+            if (visible)
+            {
+                playerTwoPingList.Add(ping);
+            }
+        }
+    }
+
+    private void DistributePingLists()
+    {
+        huds[0].GetComponent<Hud>().UpdatePingList(playerOnePingList);
+        huds[1].GetComponent<Hud>().UpdatePingList(playerTwoPingList);
+    }
+
+    public void SetPingList(List<POI> globalPingList)
+    {
+        this.globalPingList = globalPingList;
+    }
+
+    public void SetPlayers(Transform[] players)
+    {
+        this.players = players;
+        DistributeChirality();
+    }
+
+    private void DistributeChirality()
+    {
+        if (players[0].transform.position.x < players[1].transform.position.x)
+        {
+            huds[0].GetComponent<Hud>().SetChirality(0);
+            huds[1].GetComponent<Hud>().SetChirality(1);
         }
         else if (huds[0].transform.position.x < huds[1].transform.position.x)
         {
-            huds[0].GetComponent<Hud>().SetParity(1);
-            huds[1].GetComponent<Hud>().SetParity(0);
+            huds[0].GetComponent<Hud>().SetChirality(1);
+            huds[1].GetComponent<Hud>().SetChirality(0);
         }
         else
         {

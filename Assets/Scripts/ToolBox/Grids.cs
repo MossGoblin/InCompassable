@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Itr = ToolBox.Itr;
 
 public static class Grids
 {
@@ -11,10 +10,10 @@ public static class Grids
 
         int[,] gridBase = new int[floorCellWidth * cellCols, floorCellDepth * cellRows];
 
-        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
+        foreach ((int countW, int countD) in TB.Iteration(floorCellWidth, floorCellDepth))
         {
             Cell currentCell = gridCells[countW, countD];
-            foreach ((int cellW, int cellD) in Itr.Iteration(currentCell.Width, currentCell.Depth))
+            foreach ((int cellW, int cellD) in TB.Iteration(currentCell.Width, currentCell.Depth))
             {
                 int posW = countW * cellCols + cellW;
                 int posD = countD * cellRows + cellD;
@@ -72,7 +71,7 @@ public static class Grids
     public static int[,] GenerateGridWithFill(int width, int depth, int fill)
     {
         int[,] result = new int[width, depth];
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             result[countW, countD] = fill;
         }
@@ -124,7 +123,7 @@ public static class Grids
 
         (int width, int depth) = Grids.Dim(gridBase);
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             if (gridMask[countW, countD] == indexMask)
             {
@@ -147,7 +146,7 @@ public static class Grids
 
         (int width, int depth) = Grids.Dim(gridBase);
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             if (gridMask[countW, countD] != avoidanceIndex)
             {
@@ -169,7 +168,7 @@ public static class Grids
 
         (int width, int depth) = Grids.Dim(gridBase);
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             if (gridLock[countW, countD])
             {
@@ -185,7 +184,7 @@ public static class Grids
     {
         // mark the pattern on the grid
         // mark all the cells of the pattern as 100 - to be avoided in the future
-        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        foreach ((int countW, int countD) in TB.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             grid[posW + countW, posD + countD] = 100;
         }
@@ -203,7 +202,7 @@ public static class Grids
 
         int[] pos = new int[4] { 0, 1, 0, -1 };
 
-        foreach ((int countW, int countD) in Itr.IterationRange(1, width - 1, 1, depth - 1))
+        foreach ((int countW, int countD) in TB.IterationRange(1, width - 1, 1, depth - 1))
         {
             if (result[countW, countD] == 1)
             {
@@ -238,7 +237,7 @@ public static class Grids
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
 
-        foreach ((int countA, int countB) in Itr.Iteration(origin.GetLength(0), origin.GetLength(1)))
+        foreach ((int countA, int countB) in TB.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
             target[countA, countB] = origin[countA, countB];
         }
@@ -251,7 +250,7 @@ public static class Grids
         (int width, int depth) = Grids.Dim(grid);
 
         int[,] result = new int[width, depth];
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             if (grid[countW, countD] != flat)
             {

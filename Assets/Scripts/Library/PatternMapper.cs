@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using Itr = ToolBox.Itr;
 
 public static class PatternMapper
 {
@@ -17,7 +16,7 @@ public static class PatternMapper
 
 
         // 1.
-        foreach ((int countW, int countD) in Itr.IterationRange(1, width - patternWidth, 1, depth - patternDepth))
+        foreach ((int countW, int countD) in TB.IterationRange(1, width - patternWidth, 1, depth - patternDepth))
         {
             if (countedPositions.Contains((countW, countD)) || gridLock[countW, countD])
             {
@@ -37,7 +36,7 @@ public static class PatternMapper
 
     private static bool Overlay(int[,] grid, bool[,] gridLock, int[,] pattern, int posW, int posD, List<(int, int)> counted)
     {
-        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        foreach ((int countW, int countD) in TB.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             if (counted.Contains((posW + countW, posD + countD)) ||             // if the cell has not been checked
                 gridLock[posW + countW, posD + countD] ||                       // and the position is not locked
@@ -52,7 +51,7 @@ public static class PatternMapper
 
     private static void MarkAsCounted(int[,] pattern, ref int[,] grid, ref bool[,] gridLock, int posW, int posD, ref List<(int, int)> counted)
     {
-        foreach ((int countW, int countD) in Itr.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
+        foreach ((int countW, int countD) in TB.Iteration(pattern.GetLength(0), pattern.GetLength(1)))
         {
             counted.Add((posW + countW, posD + countD)); // mark position as checked
             grid[posW + countW, posD + countD] = 0; // clear position of objects, if any (mainly basics)

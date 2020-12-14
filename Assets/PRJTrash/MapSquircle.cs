@@ -108,7 +108,7 @@ public class MapSquircle : MonoBehaviour
         // Iterate pingmap
         foreach (POI ping in pingList)
         {
-            var newIcon = Instantiate(ping.prefab, new Vector3(), Quaternion.identity, background);
+            var newIcon = Instantiate(ping.icon, new Vector3(), Quaternion.identity, background);
             iconMap.Add(ping, newIcon);
         }
         UpdateRockIcons();

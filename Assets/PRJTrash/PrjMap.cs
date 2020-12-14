@@ -111,7 +111,7 @@ public class PrjMap : MonoBehaviour
         {
             // check type of ping
             float angle = GetAngle(ping.position, player);
-            var newIcon = Instantiate(ping.prefab, new Vector3(0, 0, 0), Quaternion.identity, background);
+            var newIcon = Instantiate(ping.icon, new Vector3(0, 0, 0), Quaternion.identity, background);
             Vector3 position = GetPosition(background, angle, radius);
             newIcon.localPosition = position;
             iconMap.Add(ping, newIcon);

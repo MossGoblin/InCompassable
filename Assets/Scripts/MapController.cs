@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
-using Itr = ToolBox.Itr;
 
 public class MapController : MonoBehaviour
 {
@@ -25,6 +24,8 @@ public class MapController : MonoBehaviour
     public Transform pathFinder;
     public Transform libraryTransform;
     private ElementsLibrary library;
+
+    [SerializeField] private Transform hudController;
 
     // Dimensions
     [Header("Grid")]
@@ -97,7 +98,6 @@ public class MapController : MonoBehaviour
     public void Update()
     {
         // ClearOutOfRangeObstacles();
-        HandleInput();
     }
 
     private void Init()
@@ -115,13 +115,6 @@ public class MapController : MonoBehaviour
         Random.InitState(seed);
     }
 
-    private void HandleInput()
-    {
-        // if (Input.GetKeyDown(KeyCode.Space))
-        // {
-
-        // }
-    }
     public void SetUpMode()
     {
         switch (mode)
@@ -173,10 +166,10 @@ public class MapController : MonoBehaviour
 
         MaterializeFloor(finalGrid);
 
-        // // Biomes
+        // Biomes
         CreateBiomes();
 
-        // // Color
+        // Color
         ColorizeGrid(gridBiomes);
 
     }
@@ -278,10 +271,10 @@ public class MapController : MonoBehaviour
         Vector3 position = new Vector3(0, 0, 0);
 
         // iterate the vicinity of the splotch center
-        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+        foreach ((int countW, int countD) in TB.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
                                                                         posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
         {
-            if ((GetDistance(position, center) <= mag)) // if it is inside the radius
+            if ((TB.GetDistance(position, center) <= mag)) // if it is inside the radius
             {
                 if (!grid[countW, countD]) // if the position is not 0, then there is already a massive index there; so the whole checked space is unavailable
                 {
@@ -304,13 +297,13 @@ public class MapController : MonoBehaviour
         Vector3 position = new Vector3(0, 0, 0);
 
         // iterate the vicinity of the splotch center
-        foreach ((int countW, int countD) in Itr.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
+        foreach ((int countW, int countD) in TB.IterationRange(posW - mag - splotchRimWidth, posW + mag + splotchRimWidth,
                                                                         posD - mag - splotchRimWidth, posD + mag + splotchRimWidth))
         {
             position = new Vector3(countW, 0, countD);
             // if it is on the rim
-            if ((GetDistance(position, center) >= (float)mag) &&
-            ((GetDistance(position, center) <= (float)mag + splotchRimWidth)))
+            if ((TB.GetDistance(position, center) >= (float)mag) &&
+            ((TB.GetDistance(position, center) <= (float)mag + splotchRimWidth)))
             {
                 if (grid[countW, countD] == 1) // if there is a block
                 {
@@ -319,7 +312,7 @@ public class MapController : MonoBehaviour
 
                 }
             }
-            else if ((GetDistance(position, center) < mag)) // if it is inside the radius
+            else if ((TB.GetDistance(position, center) < mag)) // if it is inside the radius
             {
                 grid[countW, countD] = 0;
                 gridLock[countW, countD] = true;
@@ -370,7 +363,7 @@ public class MapController : MonoBehaviour
         (int width, int depth) = Grids.Dim(pattern);
         int[,] rotatedPattern = Grids.Blank(pattern);
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             rotatedPattern[countD, width - countW - 1] = pattern[countW, countD];
         }
@@ -382,7 +375,7 @@ public class MapController : MonoBehaviour
     {
         Cell[,] gridCells = new Cell[floorCellWidth, floorCellDepth];
 
-        foreach ((int countW, int countD) in Itr.Iteration(floorCellWidth, floorCellDepth))
+        foreach ((int countW, int countD) in TB.Iteration(floorCellWidth, floorCellDepth))
         {
             gridCells[countW, countD] = new Cell(cellCols, cellRows, cellMin, cellMax, (int)ElementsLibrary.Elements.Basic);
         }
@@ -412,7 +405,7 @@ public class MapController : MonoBehaviour
         // gridFloor = new Transform[width, depth]; // OBS
 
         // place floor everywhere
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             int biomeIndex = gridBiomes[countW, countD];
             Transform floor = library.GetElement(biomeIndex, 0);
@@ -426,7 +419,7 @@ public class MapController : MonoBehaviour
 
         // DBG dev check total number of objects
         int totalObjects = 0;
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             Transform obj;
 
@@ -452,8 +445,6 @@ public class MapController : MonoBehaviour
             // HERE create a global PING list
             // elements - holds the position of the massive, its visibility and its icon
             // so... a POI object
-
-
             ElementsLibrary.VisibilityRanges visibilityRange = library.elementPool[elementIndex].visibilityRange;
             if ((int)visibilityRange != (int)ElementsLibrary.VisibilityRanges.Never)
             {
@@ -464,6 +455,7 @@ public class MapController : MonoBehaviour
 
             totalObjects++;
         }
+        hudController.GetComponent<HudController>().SetPingList(globalPingList);
         Debug.Log($"pingList : {globalPingList.Count} / {totalObjects}");
         Debug.Log("Materialize");
     }
@@ -492,7 +484,7 @@ public class MapController : MonoBehaviour
 
         // Iterate elements grid
 
-        foreach ((int countW, int countD) in Itr.Iteration(width, depth))
+        foreach ((int countW, int countD) in TB.Iteration(width, depth))
         {
             Transform obj = gridElements[countW, countD];
             if (obj == null)
@@ -517,6 +509,9 @@ public class MapController : MonoBehaviour
         // Set up input // TODO Do it smarter
         players[0].GetComponent<Player>().chirality = 0;
         players[1].GetComponent<Player>().chirality = 1;
+
+        // Send the players to the HUD controller
+        hudController.GetComponent<HudController>().SetPlayers(players);
     }
 
     private float GetDistance(Transform objectOne, Transform objectTwo)
@@ -527,23 +522,6 @@ public class MapController : MonoBehaviour
 
         float distX = Mathf.Abs(objectTwo.position.x - objectOne.position.x);
         float distZ = Mathf.Abs(objectTwo.position.z - objectOne.position.z);
-
-        float smaller = Mathf.Min(distX, distZ);
-        float larger = Mathf.Max(distX, distZ);
-
-        distance = smaller * sqrtTwo + (larger - smaller);
-
-        return distance;
-    }
-
-    private float GetDistance(Vector3 positionOne, Vector3 positionTwo)
-    {
-        float distance;
-
-        float sqrtTwo = Mathf.Sqrt(2f);
-
-        float distX = Mathf.Abs(positionTwo.x - positionOne.x);
-        float distZ = Mathf.Abs(positionTwo.z - positionOne.z);
 
         float smaller = Mathf.Min(distX, distZ);
         float larger = Mathf.Max(distX, distZ);
@@ -577,7 +555,7 @@ public class MapController : MonoBehaviour
     {
         int[,] target = new int[origin.GetLength(0), origin.GetLength(1)];
 
-        foreach ((int countA, int countB) in Itr.Iteration(origin.GetLength(0), origin.GetLength(1)))
+        foreach ((int countA, int countB) in TB.Iteration(origin.GetLength(0), origin.GetLength(1)))
         {
             target[countA, countB] = value;
         }
