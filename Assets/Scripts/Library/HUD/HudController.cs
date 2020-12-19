@@ -8,27 +8,47 @@ public class HudController : MonoBehaviour
     // Start is called before the first frame update
     [SerializeField]
     private Transform[] huds;
+
+    [SerializeField] Transform raycaster;
+
     public List<POI> globalPingList;
     public List<Element>[] playerPingList; // OBS ?
     public Transform[] players;
     List<POI> playerOnePingList;
     List<POI> playerTwoPingList;
-    void Start()
+    private Hud hudOne;
+    private Hud hudTwo;
+
+    public void StartUp()
     {
-        // INIT
-        Init();
+        hudOne = huds[0].GetComponent<Hud>();
+        hudTwo = huds[1].GetComponent<Hud>();
+
+        SetUpPingLists();
+        SetUpHuds();
+        hudOne.StartHud();
+        hudTwo.StartHud();
+
     }
 
-    private void Init()
+    public void Init(List<POI> globalPingList)
     {
         playerOnePingList = new List<POI>();
         playerTwoPingList = new List<POI>();
+        this.globalPingList = globalPingList;
+
+        // Update();
     }
 
     // Update is called once per frame
     void Update()
     {
         // distribute pings to players
+        SetUpPingLists();
+    }
+
+    public void SetUpPingLists()
+    {
         UpdatePingLists();
         DistributePingLists();
     }
@@ -46,7 +66,7 @@ public class HudController : MonoBehaviour
             bool visible;
             // player One
             float distanceToPlayerOne = TB.GetDistance(playerOnePosition, ping.position);
-            visible = (distanceToPlayerOne + (int)ping.visibility) <= playerOneVisionRange;
+            visible = distanceToPlayerOne <= (int)ping.visibility + playerOneVisionRange;
             if (visible)
             {
                 playerOnePingList.Add(ping);
@@ -54,7 +74,7 @@ public class HudController : MonoBehaviour
 
             // player Two
             float distanceToPlayerTwo = TB.GetDistance(playerTwoPosition, ping.position);
-            visible = (distanceToPlayerTwo + (int)ping.visibility) <= playerTwoVisionRange;
+            visible = distanceToPlayerTwo <= (int)ping.visibility + playerTwoVisionRange;
             if (visible)
             {
                 playerTwoPingList.Add(ping);
@@ -68,63 +88,37 @@ public class HudController : MonoBehaviour
         huds[1].GetComponent<Hud>().UpdatePingList(playerTwoPingList);
     }
 
-    public void SetPingList(List<POI> globalPingList)
-    {
-        this.globalPingList = globalPingList;
-    }
-
     public void SetPlayers(Transform[] players)
     {
         this.players = players;
-        DistributeChirality();
     }
 
-    private void DistributeChirality()
+    private void SetUpHuds()
     {
         if (players[0].transform.position.x < players[1].transform.position.x)
         {
-            huds[0].GetComponent<Hud>().SetChirality(0);
-            huds[1].GetComponent<Hud>().SetChirality(1);
+            hudOne.SetChirality(0);
+            hudOne.SetPlayer(players[0]);
+
+            hudTwo.SetChirality(1);
+            hudTwo.SetPlayer(players[1]);
         }
         else if (huds[0].transform.position.x < huds[1].transform.position.x)
         {
-            huds[0].GetComponent<Hud>().SetChirality(1);
-            huds[1].GetComponent<Hud>().SetChirality(0);
+            hudOne.SetChirality(1);
+            hudOne.SetPlayer(players[1]);
+
+            hudTwo.SetChirality(0);
+            hudTwo.SetPlayer(players[0]);
         }
         else
         {
-            Debug.LogError("HubGroup : Can not distribute parity");
+            Debug.LogError("HubGroup : Error is players position");
         }
 
+        hudOne.SetRadar(raycaster);
+        hudTwo.SetRadar(raycaster);
     }
-
-    // WIP
-    // public List<POI> GetPingList(int chirality)
-    // {
-    //     // iterate global ping list
-    //     // for each - check if visible by player
-    //     foreach (Element poi in globalPOIList)
-    //     {
-    //         // checks:
-    //         // 1. distance to player + object visibility >= player vision range
-    //         // 2. object always visible ??
-    //         float distanceToPlayer = GetDistanceToPlayer(poi, playerPingList[chirality]);
-    //         float poiVisibility = poi.visibility;
-    //         float playerVisionRange = players[chirality].GetComponent<Player>().visionRange;
-    //         if ()
-    //     }
-
-    // }
-
-    // private float GetDistanceToPlayer(Element, Transform player)
-    // {
-    //     throw new NotImplementedException();
-    // }
-
-    // internal void SetPlayers(Transform[] players)
-    // {
-    //     this.players = players;
-    // }
 }
 
 

@@ -1204,6 +1204,7 @@ MonoBehaviour:
   huds:
   - {fileID: 1579904931}
   - {fileID: 1924275936}
+  raycaster: {fileID: 1716426421}
   players: []
 --- !u!4 &1422355554
 Transform:
@@ -1361,6 +1362,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bd7ca9e16b8f064884f6a6d538855a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  background: {fileID: 1729212730}
+  buffer: -25
   chirality: 0
 --- !u!1 &1716426420
 GameObject:
@@ -1373,7 +1376,7 @@ GameObject:
   - component: {fileID: 1716426421}
   - component: {fileID: 1716426422}
   m_Layer: 0
-  m_Name: Radar
+  m_Name: RayCaster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1738,6 +1741,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bd7ca9e16b8f064884f6a6d538855a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  background: {fileID: 2146970537}
+  buffer: -25
   chirality: 0
 --- !u!1 &2123388021
 GameObject:

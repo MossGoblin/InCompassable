@@ -455,7 +455,7 @@ public class MapController : MonoBehaviour
 
             totalObjects++;
         }
-        hudController.GetComponent<HudController>().SetPingList(globalPingList);
+        hudController.GetComponent<HudController>().Init(globalPingList); // send pingList to hudController
         Debug.Log($"pingList : {globalPingList.Count} / {totalObjects}");
         Debug.Log("Materialize");
     }
@@ -511,7 +511,8 @@ public class MapController : MonoBehaviour
         players[1].GetComponent<Player>().chirality = 1;
 
         // Send the players to the HUD controller
-        hudController.GetComponent<HudController>().SetPlayers(players);
+        hudController.GetComponent<HudController>().SetPlayers(players); // set up players
+        hudController.GetComponent<HudController>().StartUp();
     }
 
     private float GetDistance(Transform objectOne, Transform objectTwo)
