@@ -12,10 +12,6 @@ public class MapController : MonoBehaviour
     private int seed;
     [SerializeField]
     private bool useSeed;
-    // Prefabs
-    [Header("Prefabs")]
-    public Transform floor;
-    public List<Transform> mapElements;
 
     // Refs
     [Header("Refs")]

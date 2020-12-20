@@ -22,10 +22,16 @@ public class Hud : MonoBehaviour
     [SerializeField]
     private RectTransform background;
 
+    [SerializeField]
     private float mapRadius;
 
+    [SerializeField]
+    [Range(0f, 500f)]
+    private float multiplier = 160;
+
+    [SerializeField]
     [Range(-500f, 250f)]
-    public float buffer = 0f;
+    private float buffer = -40f;
 
     // current icons
     Dictionary<POI, RectTransform> iconMap;
@@ -49,7 +55,6 @@ public class Hud : MonoBehaviour
     {
         this.raycaster = raycaster;
         mapRadius = background.sizeDelta.x / 2;
-
     }
 
     public void StartHud()
@@ -104,7 +109,8 @@ public class Hud : MonoBehaviour
             float distanceToIcon = raycaster.GetComponent<Radar>().GetDistanceAtAngle(angleToPing);
 
             // 4. 5.
-            float dist = mapRadius * distanceToIcon + buffer;
+            float dist = multiplier * distanceToIcon + buffer;
+            // float dist = mapRadius * distanceToIcon + buffer;
             Vector3 positionOfIcon = GetPosition(background, angleToPing, dist);
 
             RectTransform icon = iconMap.FirstOrDefault(i => i.Key == ping).Value;
