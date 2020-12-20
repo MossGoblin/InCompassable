@@ -23,7 +23,7 @@ public class Radar : MonoBehaviour
         {
             distance = Vector3.Distance(transform.position, hit.point);
             // Debug.Log($"hit: {hit.point.x}/{hit.point.z}");
-            Debug.Log($"dist: {distance}");
+            // Debug.Log($"dist: {distance}");
         }
 
         return distance;

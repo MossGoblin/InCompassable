@@ -110,8 +110,8 @@ public class ElementsLibrary : MonoBehaviour
     public RectTransform GetIcon(int elementIndex)
     {
         // DBG plug - no icons yet
-        // return iconSet[elementIndex];
-        return null;
+        return iconSet[elementIndex];
+        // return null;
     }
 
     public static int[,] GetPattern(int typeNumber)

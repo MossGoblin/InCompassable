@@ -55,6 +55,10 @@ public class HudController : MonoBehaviour
 
     private void UpdatePingLists()
     {
+        // clear pingLists
+        playerOnePingList = new List<POI>();
+        playerTwoPingList = new List<POI>();
+
         // Update ping lists
         Vector3 playerOnePosition = players[0].position;
         Vector3 playerTwoPosition = players[1].position;

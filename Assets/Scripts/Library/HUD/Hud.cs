@@ -9,6 +9,9 @@ public class Hud : MonoBehaviour
     private List<POI> pingList;
     //  0 for left, 1 for right
 
+    [SerializeField]
+    private int pingNumber;
+
     // Player ref
     private Transform player;
 
@@ -16,11 +19,13 @@ public class Hud : MonoBehaviour
     private Transform raycaster;
 
     // Self refs
-    public RectTransform background;
+    [SerializeField]
+    private RectTransform background;
+
     private float mapRadius;
 
-    [Range(-50f, 50f)]
-    public float buffer = -25f;
+    [Range(-500f, 250f)]
+    public float buffer = 0f;
 
     // current icons
     Dictionary<POI, RectTransform> iconMap;
@@ -56,6 +61,7 @@ public class Hud : MonoBehaviour
     void Update()
     {
         UpdateIcons();
+        pingNumber = this.pingList.Count();
     }
 
 
@@ -92,7 +98,7 @@ public class Hud : MonoBehaviour
             Debug.DrawRay(player.position, directionToPing * 10, Color.yellow, 0.05f);
 
             float angleToPing = Vector3.SignedAngle(playerLookingVector, directionToPing, player.transform.up);
-            Debug.Log($"angle: {angleToPing}");
+            // Debug.Log($"angle: {angleToPing}");
             // 2. 3.
             // float distanceToIcon = raycaster.GetComponent<Radar>().GetDistanceAtAngle(directionToPing.normalized);
             float distanceToIcon = raycaster.GetComponent<Radar>().GetDistanceAtAngle(angleToPing);
@@ -122,6 +128,7 @@ public class Hud : MonoBehaviour
 
     public void UpdatePingList(List<POI> pingList)
     {
+        this.pingList = new List<POI>();
         this.pingList = pingList;
     }
 }
