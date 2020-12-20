@@ -63,10 +63,10 @@ public class ElementsLibrary : MonoBehaviour
         elementPool.Add((int)Elements.Square, NewElement(Elements.Square, true, VisibilityRanges.Never));
         elementPool.Add((int)Elements.Arc, NewElement(Elements.Arc, true, VisibilityRanges.Never));
         elementPool.Add((int)Elements.Angle, NewElement(Elements.Angle, true, VisibilityRanges.Never));
-        elementPool.Add((int)Elements.Ex, NewElement(Elements.Ex, true, VisibilityRanges.Small));
-        elementPool.Add((int)Elements.Cross, NewElement(Elements.Cross, true, VisibilityRanges.Small));
-        elementPool.Add((int)Elements.Obelisk, NewElement(Elements.Obelisk, false, VisibilityRanges.Large));
-        elementPool.Add((int)Elements.RingRim, NewElement(Elements.RingRim, false, VisibilityRanges.Large));
+        elementPool.Add((int)Elements.Ex, NewElement(Elements.Ex, true, VisibilityRanges.Never)); // small
+        elementPool.Add((int)Elements.Cross, NewElement(Elements.Cross, true, VisibilityRanges.Never)); // small
+        elementPool.Add((int)Elements.Obelisk, NewElement(Elements.Obelisk, false, VisibilityRanges.Large)); // large
+        elementPool.Add((int)Elements.RingRim, NewElement(Elements.RingRim, false, VisibilityRanges.Never)); // large
     }
 
     private Element NewElement(Elements name, bool hasPattern, VisibilityRanges visibilityRange)
