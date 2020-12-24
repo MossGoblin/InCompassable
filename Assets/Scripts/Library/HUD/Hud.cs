@@ -60,17 +60,23 @@ public class Hud : MonoBehaviour
     public void StartHud()
     {
         iconMap = new Dictionary<POI, RectTransform>();
-        CreateIcons();
+        UpdateIcons();
+
+        // disable for DBG
+        // if (player.GetComponent<Player>().chirality == 1)
+        // {
+        //     gameObject.SetActive(false);
+        // }
     }
 
     void Update()
     {
-        UpdateIcons();
         pingNumber = this.pingList.Count();
+        UpdateIcons();
     }
 
 
-    private void CreateIcons()
+    private void ResetIcons()
     {
         // Iterate pingmap
         foreach (POI ping in pingList)
@@ -78,11 +84,11 @@ public class Hud : MonoBehaviour
             var newIcon = Instantiate(ping.icon, new Vector3(), Quaternion.identity, background);
             iconMap.Add(ping, newIcon);
         }
-        UpdateIcons();
     }
 
     private void UpdateIcons()
     {
+        ClearIconMap();
         foreach (POI ping in pingList)
         {
             // 1. from area - get angle between player.front and ping
@@ -90,6 +96,8 @@ public class Hud : MonoBehaviour
             // 3. from radar - get distance from the raycast
             // 4. send angle and distance to minimap
             // 5. minimap - position icon on the same angle, compared to minimap.front; use distance from radar
+
+            var icon = Instantiate(ping.icon, new Vector3(), Quaternion.identity, background);
 
             // 1. 
             Vector3 playerLookingVector = player.transform.forward;
@@ -105,7 +113,6 @@ public class Hud : MonoBehaviour
             float angleToPing = Vector3.SignedAngle(playerLookingVector, directionToPing, player.transform.up);
             // Debug.Log($"angle: {angleToPing}");
             // 2. 3.
-            // float distanceToIcon = raycaster.GetComponent<Radar>().GetDistanceAtAngle(directionToPing.normalized);
             float distanceToIcon = raycaster.GetComponent<Radar>().GetDistanceAtAngle(angleToPing);
 
             // 4. 5.
@@ -113,10 +120,18 @@ public class Hud : MonoBehaviour
             // float dist = mapRadius * distanceToIcon + buffer;
             Vector3 positionOfIcon = GetPosition(background, angleToPing, dist);
 
-            RectTransform icon = iconMap.FirstOrDefault(i => i.Key == ping).Value;
             icon.localPosition = positionOfIcon;
-            iconMap[ping] = icon;
+            iconMap.Add(ping, icon);
         }
+    }
+
+    private void ClearIconMap()
+    {
+        foreach (RectTransform icon in iconMap.Values)
+        {
+            Destroy(icon.gameObject);
+        }
+        iconMap = new Dictionary<POI, RectTransform>();
     }
 
     private Vector3 GetPosition(RectTransform parent, float angle, float radius)
