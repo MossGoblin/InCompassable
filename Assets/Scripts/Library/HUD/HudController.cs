@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class HudController : MonoBehaviour
@@ -14,18 +15,23 @@ public class HudController : MonoBehaviour
     public List<POI> globalPingList;
     public List<Element>[] playerPingList; // OBS ?
     public Transform[] players;
-    List<POI> playerOnePingList;
-    List<POI> playerTwoPingList;
+    private List<POI> playerOnePingList;
+    private List<POI> playerTwoPingList;
+    private List<POI> playerOnePingListOLD;
+    private List<POI> playerTwoPingListOLD;
     private Hud hudOne;
     private Hud hudTwo;
+
+    private Player playerOne;
+    private Player playerTwo;
 
     public void StartUp()
     {
         hudOne = huds[0].GetComponent<Hud>();
         hudTwo = huds[1].GetComponent<Hud>();
 
-        SetUpPingLists();
         SetUpHuds();
+        SetUpPingLists();
         hudOne.StartHud();
         hudTwo.StartHud();
 
@@ -35,66 +41,16 @@ public class HudController : MonoBehaviour
     {
         playerOnePingList = new List<POI>();
         playerTwoPingList = new List<POI>();
+        playerOnePingListOLD = new List<POI>();
+        playerTwoPingListOLD = new List<POI>();
         this.globalPingList = globalPingList;
-
         // Update();
     }
 
-    // Update is called once per frame
     void Update()
     {
         // distribute pings to players
-        SetUpPingLists();
-    }
-
-    public void SetUpPingLists()
-    {
-        UpdatePingLists();
-        DistributePingLists();
-    }
-
-    private void UpdatePingLists()
-    {
-        // clear pingLists
-        playerOnePingList = new List<POI>();
-        playerTwoPingList = new List<POI>();
-
-        // Update ping lists
-        Vector3 playerOnePosition = players[0].position;
-        Vector3 playerTwoPosition = players[1].position;
-        float playerOneVisionRange = players[0].GetComponent<Player>().visionRange;
-        float playerTwoVisionRange = players[1].GetComponent<Player>().visionRange;
-
-        foreach (POI ping in globalPingList)
-        {
-            bool visible;
-            // player One
-            float distanceToPlayerOne = TB.GetDistance(playerOnePosition, ping.position);
-            visible = distanceToPlayerOne <= (int)ping.visibility + playerOneVisionRange;
-            if (visible)
-            {
-                playerOnePingList.Add(ping);
-            }
-
-            // player Two
-            float distanceToPlayerTwo = TB.GetDistance(playerTwoPosition, ping.position);
-            visible = distanceToPlayerTwo <= (int)ping.visibility + playerTwoVisionRange;
-            if (visible)
-            {
-                playerTwoPingList.Add(ping);
-            }
-        }
-    }
-
-    private void DistributePingLists()
-    {
-        huds[0].GetComponent<Hud>().UpdatePingList(playerOnePingList);
-        huds[1].GetComponent<Hud>().UpdatePingList(playerTwoPingList);
-    }
-
-    public void SetPlayers(Transform[] players)
-    {
-        this.players = players;
+        UpdatePingList();
     }
 
     private void SetUpHuds()
@@ -122,6 +78,93 @@ public class HudController : MonoBehaviour
 
         hudOne.SetRadar(raycaster);
         hudTwo.SetRadar(raycaster);
+
+        playerOne = hudOne.GetPlayer();
+        playerTwo = hudTwo.GetPlayer();
+    }
+
+    public void SetUpPingLists()
+    {
+        CreatePingLists();
+        DistributePingLists();
+    }
+
+    private void CreatePingLists()
+    {
+        // clear pingLists
+        playerOnePingList = new List<POI>();
+        playerTwoPingList = new List<POI>();
+
+        // Update ping lists
+        Vector3 playerOnePosition = players[0].position;
+        Vector3 playerTwoPosition = players[1].position;
+        float playerOneVisionRange = players[0].GetComponent<Player>().visionRange;
+        float playerTwoVisionRange = players[1].GetComponent<Player>().visionRange;
+
+        foreach (POI ping in globalPingList)
+        {
+            playerOnePingList = PingToPlayerList(ping, playerOnePosition, playerOneVisionRange, playerOnePingList);
+            playerTwoPingList = PingToPlayerList(ping, playerTwoPosition, playerTwoVisionRange, playerTwoPingList);
+        }
+    }
+
+    private void UpdatePingList()
+    {
+        // Stash current ping lists
+        playerOnePingListOLD = playerOnePingList;
+        playerTwoPingListOLD = playerTwoPingList;
+        // Create new lists
+        CreatePingLists();
+        // Get all new pings for each list
+        List<POI> newInPlayerONEList = playerOnePingList.Except(playerOnePingListOLD).ToList();
+        List<POI> newInPlayerTWOList = playerTwoPingListOLD.Except(playerTwoPingListOLD).ToList();
+        // Get all old from each ping lists
+        List<POI> oldInPlayerONEList = playerOnePingListOLD.Except(playerOnePingList).ToList();
+        List<POI> oldInPlayerTWOList = playerTwoPingListOLD.Except(playerOnePingList).ToList();
+
+        if (newInPlayerONEList.Count > 0)
+        {
+            hudOne.AddPings(newInPlayerONEList);
+        }
+
+        if (newInPlayerTWOList.Count > 0)
+        {
+            hudTwo.AddPings(newInPlayerTWOList);
+        }
+
+        if (oldInPlayerONEList.Count > 0)
+        {
+            hudOne.RemovePings(oldInPlayerONEList);
+        }
+
+        if (oldInPlayerTWOList.Count > 0)
+        {
+            hudTwo.RemovePings(oldInPlayerTWOList);
+        }
+    }
+
+    private List<POI> PingToPlayerList(POI ping, Vector3 playerPosition, float playerVisionRange, List<POI> playerPingList)
+    {
+        bool visible;
+        float distanceToPlayer = TB.GetDistance(playerPosition, ping.position);
+        visible = distanceToPlayer <= (int)ping.visibility + playerVisionRange;
+        if (visible)
+        {
+            playerPingList.Add(ping);
+        }
+
+        return playerPingList;
+    }
+
+    private void DistributePingLists()
+    {
+        huds[0].GetComponent<Hud>().UpdatePingList(playerOnePingList);
+        huds[1].GetComponent<Hud>().UpdatePingList(playerTwoPingList);
+    }
+
+    public void SetPlayers(Transform[] players)
+    {
+        this.players = players;
     }
 }
 

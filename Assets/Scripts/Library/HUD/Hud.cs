@@ -63,10 +63,10 @@ public class Hud : MonoBehaviour
         UpdateIcons();
 
         // disable for DBG
-        // if (player.GetComponent<Player>().chirality == 1)
-        // {
-        //     gameObject.SetActive(false);
-        // }
+        if (player.GetComponent<Player>().chirality == 1)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     void Update()
@@ -96,6 +96,10 @@ public class Hud : MonoBehaviour
             // 3. from radar - get distance from the raycast
             // 4. send angle and distance to minimap
             // 5. minimap - position icon on the same angle, compared to minimap.front; use distance from radar
+            if (iconMap.ContainsKey(ping))
+            {
+                continue;
+            }
 
             var icon = Instantiate(ping.icon, new Vector3(), Quaternion.identity, background);
 
@@ -125,6 +129,11 @@ public class Hud : MonoBehaviour
         }
     }
 
+    public Player GetPlayer()
+    {
+        return player.GetComponent<Player>();
+    }
+
     private void ClearIconMap()
     {
         foreach (RectTransform icon in iconMap.Values)
@@ -151,5 +160,21 @@ public class Hud : MonoBehaviour
     {
         this.pingList = new List<POI>();
         this.pingList = pingList;
+    }
+
+    public void AddPings(List<POI> newPings)
+    {
+        foreach (POI ping in newPings)
+        {
+            pingList.Add(ping);
+        }
+    }
+
+    public void RemovePings(List<POI> oldPings)
+    {
+        foreach (POI ping in oldPings)
+        {
+            pingList.Remove(ping);
+        }
     }
 }
