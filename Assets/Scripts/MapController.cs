@@ -451,6 +451,7 @@ public class MapController : MonoBehaviour
 
             totalObjects++;
         }
+        globalPingList.RemoveRange(1, globalPingList.Count - 1); // DBG SEND ONLY ONE PING
         hudController.GetComponent<HudController>().Init(globalPingList); // send pingList to hudController
         Debug.Log($"pingList : {globalPingList.Count} / {totalObjects}");
         Debug.Log("Materialize");

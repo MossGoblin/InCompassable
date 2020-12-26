@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public Camera playerCamera;
     public int chirality;
     public float visionRange = 15;
 }

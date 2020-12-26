@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 5404412480158113948}
   - component: {fileID: 221697554408475843}
   m_Layer: 0
-  m_Name: TochOne
+  m_Name: Torch
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -290,7 +290,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4509a8c933244046adeadba1bce1442, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerCamera: {fileID: 2406369947282330941}
   chirality: 0
+  visionRange: 15
 --- !u!1 &6678197428180266519
 GameObject:
   m_ObjectHideFlags: 0

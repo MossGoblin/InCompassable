@@ -32,6 +32,7 @@ public class HudController : MonoBehaviour
 
         SetUpHuds();
         SetUpPingLists();
+        SetUpCameras();
         hudOne.StartHud();
         hudTwo.StartHud();
 
@@ -101,10 +102,13 @@ public class HudController : MonoBehaviour
         float playerOneVisionRange = players[0].GetComponent<Player>().visionRange;
         float playerTwoVisionRange = players[1].GetComponent<Player>().visionRange;
 
-        foreach (POI ping in globalPingList)
+        if (globalPingList.Count > 0)
         {
-            playerOnePingList = PingToPlayerList(ping, playerOnePosition, playerOneVisionRange, playerOnePingList);
-            playerTwoPingList = PingToPlayerList(ping, playerTwoPosition, playerTwoVisionRange, playerTwoPingList);
+            foreach (POI ping in globalPingList)
+            {
+                playerOnePingList = PingToPlayerList(ping, playerOnePosition, playerOneVisionRange, playerOnePingList);
+                playerTwoPingList = PingToPlayerList(ping, playerTwoPosition, playerTwoVisionRange, playerTwoPingList);
+            }
         }
     }
 
@@ -165,6 +169,14 @@ public class HudController : MonoBehaviour
     public void SetPlayers(Transform[] players)
     {
         this.players = players;
+    }
+
+    private void SetUpCameras()
+    {
+        Camera playerOneCamera = playerOne.playerCamera;
+        Camera playerTwoCamera = playerTwo.playerCamera;
+        hudOne.SetUpCamera(playerOneCamera);
+        hudTwo.SetUpCamera(playerTwoCamera);
     }
 }
 

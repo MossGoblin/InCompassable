@@ -447,18 +447,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   seed: 615077
   useSeed: 1
-  floor: {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
-  mapElements:
-  - {fileID: 3058182917499722655, guid: 108b3cc9bceaf0d429fea1a0cae756dd, type: 3}
-  - {fileID: 4925530272361551128, guid: baf6b5b3755784847b78a77e39b708e7, type: 3}
-  - {fileID: 2109063719955871463, guid: 45ade739587999d4d912a71dc3d6238e, type: 3}
-  - {fileID: 1936432019998539517, guid: a514f5c7926eff340a02f928e330dc28, type: 3}
-  - {fileID: 7256200799150049863, guid: a5edd2548a59d754ebf8078c92ccef0e, type: 3}
-  - {fileID: 8780978241184800233, guid: c78a976380d85b044a7f481233e92837, type: 3}
-  - {fileID: 4925530272361551128, guid: 84146c8194fca5b4090a9de3b1d677f4, type: 3}
-  - {fileID: 4925530272361551128, guid: ab66bea66718c34479d6d4295bcb381b, type: 3}
-  - {fileID: 4592067654184437547, guid: f9f11ce8f2f54574b9f028e7a5838de4, type: 3}
-  - {fileID: 8823483675982783871, guid: a6a7c7d9bb27ea446af549acbd038583, type: 3}
   floorHolder: {fileID: 1740609716}
   mapHolder: {fileID: 2123388022}
   pathFinder: {fileID: 682567330}
@@ -1245,6 +1233,36 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1476737245
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1476737246}
+  m_Layer: 0
+  m_Name: HiddenIconsHolder
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1476737246
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1476737245}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 55.2, y: 58.300003, z: -53.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 16
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1544614359
 GameObject:
   m_ObjectHideFlags: 0
@@ -1389,10 +1407,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pingNumber: 19
   background: {fileID: 1729212730}
+  hiddenHolder: {fileID: 1476737246}
   mapRadius: 325
   multiplier: 160
   buffer: -40
   chirality: 0
+  hudRange: 5
+  hudBuffer: 0.5
 --- !u!1 &1716426420
 GameObject:
   m_ObjectHideFlags: 0
@@ -1781,10 +1802,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pingNumber: 19
   background: {fileID: 2146970537}
+  hiddenHolder: {fileID: 1476737246}
   mapRadius: 325
   multiplier: 160
   buffer: -40
   chirality: 0
+  hudRange: 5
+  hudBuffer: 0.5
 --- !u!1 &2123388021
 GameObject:
   m_ObjectHideFlags: 0

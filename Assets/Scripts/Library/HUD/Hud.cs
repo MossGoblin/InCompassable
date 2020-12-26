@@ -12,6 +12,10 @@ public class Hud : MonoBehaviour
     [SerializeField]
     private int pingNumber;
 
+    // Camera ref
+    [SerializeField]
+    public Camera hudCamera;
+
     // Player ref
     private Transform player;
 
@@ -21,6 +25,10 @@ public class Hud : MonoBehaviour
     // Self refs
     [SerializeField]
     private RectTransform background;
+
+    // Holder for hidden icons
+    [SerializeField]
+    private Transform hiddenHolder;
 
     [SerializeField]
     private float mapRadius;
@@ -36,10 +44,18 @@ public class Hud : MonoBehaviour
     // current icons
     Dictionary<POI, RectTransform> iconMap;
 
-
-
     [SerializeField]
     private int chirality;
+
+    // Debug range slide
+    // FIX one of those will be used
+    [SerializeField]
+    [Range(2f, 10f)]
+    private float hudRange = 5f;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float hudBuffer = 0f;
 
     public void SetChirality(int chirality)
     {
@@ -73,17 +89,7 @@ public class Hud : MonoBehaviour
     {
         pingNumber = this.pingList.Count();
         UpdateIcons();
-    }
-
-
-    private void ResetIcons()
-    {
-        // Iterate pingmap
-        foreach (POI ping in pingList)
-        {
-            var newIcon = Instantiate(ping.icon, new Vector3(), Quaternion.identity, background);
-            iconMap.Add(ping, newIcon);
-        }
+        HideIconsForVisibleObjects(); // FIX not working
     }
 
     private void UpdateIcons()
@@ -126,6 +132,29 @@ public class Hud : MonoBehaviour
 
             icon.localPosition = positionOfIcon;
             iconMap.Add(ping, icon);
+
+            // HERE Hide icons for close objects
+            // OBS
+            // check if the distance from the center of the hudded area to the object is too small
+            // .. if it is, then the object is visible in the hud - hide the icon
+        }
+    }
+
+    // HERE
+    private void HideIconsForVisibleObjects()
+    {
+        foreach (POI ping in iconMap.Keys)
+        {
+            Vector3 screenPoint = hudCamera.WorldToViewportPoint(ping.position);
+            bool onScreen = screenPoint.z > hudBuffer && screenPoint.z < 1 - hudBuffer && screenPoint.x > hudBuffer && screenPoint.x < 1 - hudBuffer;
+            if (onScreen)
+            {
+                iconMap[ping].SetParent(hiddenHolder);
+            }
+            else
+            {
+                iconMap[ping].SetParent(background);
+            }
         }
     }
 
@@ -176,5 +205,10 @@ public class Hud : MonoBehaviour
         {
             pingList.Remove(ping);
         }
+    }
+
+    public void SetUpCamera(Camera camera)
+    {
+        this.hudCamera = camera;
     }
 }
