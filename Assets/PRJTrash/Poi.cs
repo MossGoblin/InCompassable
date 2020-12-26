@@ -8,10 +8,10 @@ public class POI
 
     public RectTransform icon { get; set; }
     public ElementsLibrary.VisibilityRanges visibility { get; private set; }
-    public POI(Vector3 pos, RectTransform pref, ElementsLibrary.VisibilityRanges visibility)
+    public POI(Vector3 pos, RectTransform prefab, ElementsLibrary.VisibilityRanges visibility)
     {
         this.position = pos;
-        this.icon = pref;
+        this.icon = prefab;
         this.visibility = visibility;
     }
 }
