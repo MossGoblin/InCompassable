@@ -48,13 +48,8 @@ public class Hud : MonoBehaviour
     private int chirality;
 
     // Debug range slide
-    // FIX one of those will be used
     [SerializeField]
-    [Range(2f, 10f)]
-    private float hudRange = 5f;
-
-    [SerializeField]
-    [Range(0f, 1f)]
+    [Range(-0.5f, 0.5f)]
     private float hudBuffer = 0f;
 
     public void SetChirality(int chirality)
@@ -78,8 +73,8 @@ public class Hud : MonoBehaviour
         iconMap = new Dictionary<POI, RectTransform>();
         UpdateIcons();
 
-        // disable for DBG
-        if (player.GetComponent<Player>().chirality == 1)
+        // disable hud for DBG
+        if (player.GetComponent<Player>().chirality == 0)
         {
             gameObject.SetActive(false);
         }
@@ -89,7 +84,7 @@ public class Hud : MonoBehaviour
     {
         pingNumber = this.pingList.Count();
         UpdateIcons();
-        HideIconsForVisibleObjects(); // FIX not working
+        HideIconsForVisibleObjects(); // FIX not working to a perfection
     }
 
     private void UpdateIcons()
@@ -132,11 +127,6 @@ public class Hud : MonoBehaviour
 
             icon.localPosition = positionOfIcon;
             iconMap.Add(ping, icon);
-
-            // HERE Hide icons for close objects
-            // OBS
-            // check if the distance from the center of the hudded area to the object is too small
-            // .. if it is, then the object is visible in the hud - hide the icon
         }
     }
 
@@ -146,7 +136,11 @@ public class Hud : MonoBehaviour
         foreach (POI ping in iconMap.Keys)
         {
             Vector3 screenPoint = hudCamera.WorldToViewportPoint(ping.position);
-            bool onScreen = screenPoint.z > hudBuffer && screenPoint.z < 1 - hudBuffer && screenPoint.x > hudBuffer && screenPoint.x < 1 - hudBuffer;
+            // DBG NOT GETTING the hudBuffer impact maybe
+            bool onScreen = screenPoint.x > (0 + hudBuffer) 
+                         && screenPoint.x < (1 - hudBuffer) 
+                         && screenPoint.y > (0 + hudBuffer) 
+                         && screenPoint.y < (1 - hudBuffer);
             if (onScreen)
             {
                 iconMap[ping].SetParent(hiddenHolder);

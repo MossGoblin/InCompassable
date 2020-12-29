@@ -1406,6 +1406,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pingNumber: 19
+  hudCamera: {fileID: 0}
   background: {fileID: 1729212730}
   hiddenHolder: {fileID: 1476737246}
   mapRadius: 325
@@ -1413,7 +1414,7 @@ MonoBehaviour:
   buffer: -40
   chirality: 0
   hudRange: 5
-  hudBuffer: 0.5
+  hudBuffer: 0
 --- !u!1 &1716426420
 GameObject:
   m_ObjectHideFlags: 0
@@ -1801,6 +1802,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pingNumber: 19
+  hudCamera: {fileID: 0}
   background: {fileID: 2146970537}
   hiddenHolder: {fileID: 1476737246}
   mapRadius: 325
@@ -1808,7 +1810,7 @@ MonoBehaviour:
   buffer: -40
   chirality: 0
   hudRange: 5
-  hudBuffer: 0.5
+  hudBuffer: 0
 --- !u!1 &2123388021
 GameObject:
   m_ObjectHideFlags: 0
