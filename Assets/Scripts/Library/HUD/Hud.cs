@@ -74,10 +74,10 @@ public class Hud : MonoBehaviour
         UpdateIcons();
 
         // disable hud for DBG
-        if (player.GetComponent<Player>().chirality == 0)
-        {
-            gameObject.SetActive(false);
-        }
+        // if (player.GetComponent<Player>().chirality == 0)
+        // {
+        //     gameObject.SetActive(false);
+        // }
     }
 
     void Update()

@@ -124,7 +124,7 @@ public class HudController : MonoBehaviour
         List<POI> newInPlayerTWOList = playerTwoPingListOLD.Except(playerTwoPingListOLD).ToList();
         // Get all old from each ping lists
         List<POI> oldInPlayerONEList = playerOnePingListOLD.Except(playerOnePingList).ToList();
-        List<POI> oldInPlayerTWOList = playerTwoPingListOLD.Except(playerOnePingList).ToList();
+        List<POI> oldInPlayerTWOList = playerTwoPingListOLD.Except(playerTwoPingList).ToList();
 
         if (newInPlayerONEList.Count > 0)
         {
